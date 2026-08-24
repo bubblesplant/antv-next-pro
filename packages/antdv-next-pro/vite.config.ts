@@ -1,0 +1,59 @@
+import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite-plus'
+import { playwright } from 'vite-plus/test/browser-playwright'
+
+export default defineConfig({
+  plugins: [vue()],
+  pack: {
+    entry: ['src/index.ts'],
+    dts: { sourcemap: true, vue: true },
+    deps: {
+      neverBundle: ['vue', 'antdv-next', '@antdv-next/icons'],
+    },
+    format: ['esm', 'cjs'],
+    fromVite: true,
+    platform: 'neutral',
+    sourcemap: true,
+  },
+  test: {
+    coverage: {
+      include: ['src/table/**/*.ts', 'src/schema-form/utils.ts'],
+      provider: 'v8',
+      reporter: ['text', 'html', 'json-summary'],
+      thresholds: {
+        statements: 80,
+        branches: 75,
+        functions: 80,
+        lines: 80,
+      },
+    },
+    projects: [
+      {
+        plugins: [vue()],
+        test: {
+          name: 'unit',
+          environment: 'jsdom',
+          include: ['tests/**/*.test.ts'],
+          exclude: ['tests/**/*.browser.test.ts'],
+          server: {
+            deps: {
+              inline: true,
+            },
+          },
+        },
+      },
+      {
+        plugins: [vue()],
+        test: {
+          name: 'browser',
+          include: ['tests/**/*.browser.test.ts'],
+          browser: {
+            enabled: true,
+            provider: playwright(),
+            instances: [{ browser: 'chromium' }],
+          },
+        },
+      },
+    ],
+  },
+})

@@ -1,0 +1,43 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalogMode: prefer
+
+catalog:
+  '@antdv-next/icons': ^1.1.2
+  '@antfu/eslint-config': ^9.3.0
+  '@changesets/changelog-github': ^1.0.0
+  '@changesets/cli': ^3.0.1
+  '@commitlint/cli': ^21.2.2
+  '@commitlint/config-conventional': ^21.2.2
+  '@types/node': ^24.0.0
+  '@vitejs/plugin-vue': ^6.0.8
+  '@vitest/browser-playwright': 4.1.10
+  '@vitest/coverage-v8': 4.1.10
+  '@vue/test-utils': ^2.4.11
+  antdv-next: ^1.5.2
+  esbuild: ^0.28.0
+  eslint: ^10.9.0
+  jsdom: ^30.0.1
+  playwright: ^1.62.1
+  typescript: ^5.9.3
+  vite: npm:@voidzero-dev/vite-plus-core@0.2.9
+  vite-plus: 0.2.9
+  vitepress: ^1.6.4
+  vitest: 4.1.10
+  vitest-browser-vue: ^2.1.0
+  vue: ^3.5.41
+  vue-tsc: ^3.3.11
+
+overrides:
+  vite: 'catalog:'
+
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: '*'
+
+allowBuilds:
+  esbuild: true

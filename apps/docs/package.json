@@ -1,0 +1,26 @@
+{
+  "name": "docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vitepress build .",
+    "dev": "vitepress dev .",
+    "preview": "vitepress preview .",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "antdv-next": "catalog:",
+    "antdv-next-pro": "workspace:*",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "esbuild": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitepress": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

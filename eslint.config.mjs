@@ -1,0 +1,40 @@
+import antfu from '@antfu/eslint-config'
+
+export default antfu(
+  {
+    formatters: false,
+    lessOpinionated: true,
+    stylistic: false,
+    typescript: true,
+    vue: true,
+    ignores: ['**/dist/**', '**/coverage/**', '**/.vitepress/cache/**', '**/.vitepress/dist/**'],
+  },
+  {
+    files: ['**/*.vue'],
+    rules: {
+      'import/consistent-type-specifier-style': 'off',
+      'perfectionist/sort-imports': 'off',
+      'perfectionist/sort-named-imports': 'off',
+      'perfectionist/sort-vue-attributes': 'off',
+      'vue/attribute-hyphenation': 'off',
+      'vue/attributes-order': 'off',
+      'vue/block-lang': 'off',
+      'vue/block-order': 'off',
+      'vue/component-name-in-template-casing': 'off',
+      'vue/component-tags-order': 'off',
+      'vue/custom-event-name-casing': 'off',
+      'vue/first-attribute-linebreak': 'off',
+      'vue/html-closing-bracket-newline': 'off',
+      'vue/html-closing-bracket-spacing': 'off',
+      'vue/html-indent': 'off',
+      'vue/html-self-closing': 'off',
+      'vue/max-attributes-per-line': 'off',
+      'vue/multiline-html-element-content-newline': 'off',
+      'vue/no-deprecated-filter': 'off',
+      'vue/padding-line-between-blocks': 'off',
+      'vue/prefer-separate-static-class': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/static-class-names-order': 'off',
+    },
+  },
+)

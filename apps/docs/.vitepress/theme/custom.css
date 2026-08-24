@@ -1,0 +1,101 @@
+:root {
+  --vp-c-brand-1: #1768d3;
+  --vp-c-brand-2: #0d7bc4;
+  --vp-c-brand-3: #0a8d9d;
+  --vp-c-brand-soft: rgba(23, 104, 211, 0.12);
+  --vp-font-family-base:
+    Inter, 'Avenir Next', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --vp-font-family-mono: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(105deg, #1768d3 12%, #00a7b5 78%);
+  --vp-home-hero-image-background-image:
+    linear-gradient(rgba(23, 104, 211, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 104, 211, 0.14) 1px, transparent 1px);
+  --vp-home-hero-image-filter: blur(0);
+}
+
+.VPNavBarTitle .logo {
+  border-radius: 8px 2px 8px 2px;
+  box-shadow: 3px 3px 0 #ffb547;
+}
+
+.VPHero .name,
+.VPHero .text {
+  letter-spacing: -0.045em;
+}
+
+.VPHero .image-bg {
+  width: 260px;
+  height: 260px;
+  background-size: 22px 22px;
+  border: 1px solid rgba(23, 104, 211, 0.22);
+  border-radius: 8px 42px 8px 42px;
+  opacity: 0.9;
+  transform: rotate(-4deg);
+}
+
+.VPFeature {
+  border-radius: 7px 22px 7px 22px !important;
+}
+
+.vp-doc table {
+  display: table;
+  width: 100%;
+}
+
+.vp-doc th {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.demo-frame {
+  margin: 22px 0 32px;
+  padding: 20px;
+  overflow: auto;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 7px 24px 7px 24px;
+  background:
+    linear-gradient(rgba(23, 104, 211, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 104, 211, 0.035) 1px, transparent 1px), var(--vp-c-bg-soft);
+  background-size: 24px 24px;
+}
+
+.demo-frame > .demo-label {
+  margin: 0 0 16px;
+  color: var(--vp-c-brand-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.compat-ok,
+.compat-map,
+.compat-partial {
+  font-weight: 700;
+}
+
+.compat-ok {
+  color: #0b8f72;
+}
+
+.compat-map {
+  color: #1768d3;
+}
+
+.compat-partial {
+  color: #bf7517;
+}
+
+@media (max-width: 640px) {
+  .demo-frame {
+    margin-inline: -8px;
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}

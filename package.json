@@ -1,0 +1,49 @@
+{
+  "name": "antv-next-pro",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vp run -r build",
+    "changeset": "changeset",
+    "check": "vp run quality",
+    "ci": "vp run quality",
+    "dev": "vp run playground#dev",
+    "docs:build": "vp run docs#build",
+    "docs:dev": "vp run docs#dev",
+    "format": "vp fmt --write .",
+    "format:check": "vp fmt --check .",
+    "lint:ox": "vp lint .",
+    "lint:vue": "eslint \"packages/**/*.vue\" \"apps/**/*.vue\" --max-warnings=0",
+    "prepare": "vp config --hooks-dir .vite-hooks --no-agent",
+    "release": "pnpm build && changeset publish",
+    "test": "vp run -r test",
+    "test:browser": "vp run antdv-next-pro#test:browser",
+    "test:coverage": "vp run antdv-next-pro#test:coverage",
+    "typecheck": "vp run -r typecheck",
+    "version-packages": "changeset version && pnpm install --lockfile-only --no-frozen-lockfile"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "catalog:",
+    "@changesets/changelog-github": "catalog:",
+    "@changesets/cli": "catalog:",
+    "@commitlint/cli": "catalog:",
+    "@commitlint/config-conventional": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.22.0",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "packageManager": "pnpm@11.22.0"
+}

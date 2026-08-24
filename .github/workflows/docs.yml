@@ -20,13 +20,11 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
-  id-token: write
-  pages: write
+  contents: write
 
 jobs:
-  build:
-    name: Build documentation
+  deploy:
+    name: Build and publish documentation branch
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -53,23 +51,10 @@ jobs:
       - name: Build VitePress
         run: pnpm docs:build
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: apps/docs/.vitepress/dist
-
-  deploy:
-    name: Deploy documentation
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: apps/docs/.vitepress/dist
+          force_orphan: true

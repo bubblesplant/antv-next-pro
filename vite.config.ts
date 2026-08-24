@@ -23,6 +23,7 @@ export default defineConfig({
       '**/.vitepress/cache/**',
       '**/.vitepress/dist/**',
       '**/*.vue',
+      'packages/antdv-next-pro/tests/consumer/**',
     ],
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
     rules: {

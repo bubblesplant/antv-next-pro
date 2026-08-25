@@ -1,12 +1,13 @@
-import { flushPromises, shallowMount } from '@vue/test-utils'
-import { Pagination, Table } from 'antdv-next'
-import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
-import { defineComponent, h } from 'vue'
 import type { VueWrapper } from '@vue/test-utils'
+import type { EditableAction, ProKey, ProTableInstance } from '../src/types'
+import { DownOutlined, UpOutlined } from '@antdv-next/icons'
+import { flushPromises, shallowMount } from '@vue/test-utils'
+import { Button, Pagination, Table } from 'antdv-next'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 
+import { defineComponent, h } from 'vue'
 import EditableProTable from '../src/EditableProTable.vue'
 import ProTable from '../src/ProTable.vue'
-import type { EditableAction, ProKey, ProTableInstance } from '../src/types'
 
 interface Row extends Record<string, unknown> {
   id: number
@@ -27,6 +28,25 @@ afterEach(() => {
 })
 
 describe('ProTable', () => {
+  it('renders built-in toolbar options without bordered button styling', () => {
+    wrapper = shallowMount(ProTable, {
+      props: {
+        columns: [],
+        dataSource: [],
+        pagination: false,
+        search: false,
+      },
+    })
+
+    const optionButtons = wrapper.get('.antdv-next-pro__toolbar-actions').findAllComponents(Button)
+    expect(optionButtons).toHaveLength(4)
+    expect(
+      optionButtons.every(
+        (button: VueWrapper) => (button.props() as Record<string, unknown>).type === 'text',
+      ),
+    ).toBe(true)
+  })
+
   it('accepts only the latest remote request result', async () => {
     const resolvers = new Map<number, (result: { data: Row[]; total: number }) => void>()
     const request = vi.fn(
@@ -171,25 +191,49 @@ describe('ProTable', () => {
       },
     })
 
-    expect(wrapper.findAll('.antdv-next-pro__search-field')).toHaveLength(2)
+    expect(wrapper.findAll('.antdv-next-pro__search-field')).toHaveLength(1)
     expect(wrapper.get('.antdv-next-pro__search-fields').attributes('style')).toContain(
       '--antdv-next-pro-search-columns: 2',
     )
+    expect(
+      wrapper
+        .get('.antdv-next-pro__search-fields')
+        .find('.antdv-next-pro__search-actions')
+        .exists(),
+    ).toBe(true)
+    const actionButtons = wrapper
+      .get('.antdv-next-pro__search-actions')
+      .findAllComponents(Button) as VueWrapper[]
+    expect(actionButtons).toHaveLength(3)
+    expect(
+      actionButtons.map((button: VueWrapper) => (button.props() as Record<string, unknown>).type),
+    ).toEqual([undefined, 'primary', 'link'])
+    expect(actionButtons[2]?.classes()).toContain('antdv-next-pro__search-collapse')
     expect(wrapper.get('.antdv-next-pro__search-field').attributes('style')).toContain(
       'grid-template-columns: 80px minmax(0, 1fr)',
+    )
+    const collapseButton = actionButtons[2] as VueWrapper
+    expect(collapseButton.attributes('aria-expanded')).toBe('false')
+    expect((collapseButton.props() as Record<string, unknown>).iconPlacement).toBe('end')
+    expect((collapseButton.vm.$slots.icon?.()[0]?.type as { name?: string }).name).toBe(
+      DownOutlined.name,
     )
 
     await wrapper.get('.antdv-next-pro__search-collapse').trigger('click')
     expect(wrapper.findAll('.antdv-next-pro__search-field')).toHaveLength(4)
+    expect(collapseButton.attributes('aria-expanded')).toBe('true')
+    expect((collapseButton.vm.$slots.icon?.()[0]?.type as { name?: string }).name).toBe(
+      UpOutlined.name,
+    )
     expect(onCollapse).toHaveBeenLastCalledWith(false)
     expect(wrapper.emitted('searchCollapse')?.at(-1)).toEqual([false])
 
     await wrapper.setProps({
       search: { collapsed: true, span: 12, labelWidth: 'auto', onCollapse },
     })
-    expect(wrapper.findAll('.antdv-next-pro__search-field')).toHaveLength(2)
+    expect(wrapper.findAll('.antdv-next-pro__search-field')).toHaveLength(1)
     await wrapper.get('.antdv-next-pro__search-collapse').trigger('click')
-    expect(wrapper.findAll('.antdv-next-pro__search-field')).toHaveLength(2)
+    expect(wrapper.findAll('.antdv-next-pro__search-field')).toHaveLength(1)
     await wrapper.setProps({
       search: { collapsed: false, span: 12, labelWidth: 'auto', onCollapse },
     })

@@ -104,6 +104,19 @@ export interface ProTableSearchConfig {
   resetText?: string
 }
 
+export interface ProTableLocaleText {
+  search: string
+  reset: string
+  expand: string
+  collapse: string
+  densityDefault: string
+  densityCompact: string
+  densityLoose: string
+  fullScreen: string
+  reload: string
+  setting: string
+}
+
 export type ProTableScrollTarget = ProKey | { key: ProKey } | { top: number }
 
 export interface ProTablePagination {
@@ -175,6 +188,7 @@ export interface ProTableProps<
   rowKey?: keyof T | string | ((record: T) => ProKey)
   loading?: boolean
   search?: false | ProTableSearchConfig
+  localeText?: Partial<ProTableLocaleText>
   pagination?: false | ProTablePagination
   options?: false | ProTableOptions
   toolbar?: false | { title?: VNodeChild; actions?: VNodeChild | (() => VNodeChild) }

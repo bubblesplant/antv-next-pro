@@ -14,6 +14,7 @@ import type {
   ProColumnsState,
   ProFilter,
   ProKey,
+  ProTableLocaleText,
   ProSort,
   ProTableInstance,
   ProTablePagination,
@@ -24,11 +25,13 @@ import type {
 
 import {
   ColumnHeightOutlined,
+  DownOutlined,
   FullscreenOutlined,
   ReloadOutlined,
   SettingOutlined,
+  UpOutlined,
 } from '@antdv-next/icons'
-import { Button, Checkbox, Pagination, Popconfirm, Space, Table } from 'antdv-next'
+import { Button, Checkbox, Pagination, Popconfirm, Space, Table, theme } from 'antdv-next'
 import {
   computed,
   defineComponent,
@@ -82,6 +85,19 @@ const emit = defineEmits<{
   load: [rows: T[], total: number]
 }>()
 
+const DEFAULT_LOCALE_TEXT: ProTableLocaleText = {
+  search: '查询',
+  reset: '重置',
+  expand: '展开',
+  collapse: '收起',
+  densityDefault: '默认',
+  densityCompact: '紧凑',
+  densityLoose: '宽松',
+  fullScreen: '全屏',
+  reload: '刷新',
+  setting: '列设置',
+}
+
 const RenderNode = defineComponent({
   name: 'AntdvNextProRenderNode',
   props: {
@@ -93,6 +109,7 @@ const RenderNode = defineComponent({
 })
 
 const slots = useSlots()
+const { token } = theme.useToken()
 const rootElement = ref<HTMLElement>()
 const tableData = shallowRef<T[]>([...(props.dataSource ?? props.defaultDataSource ?? [])])
 const internalLoading = ref(false)
@@ -115,6 +132,23 @@ const mounted = ref(false)
 let requestSequence = 0
 let optionRequestSequence = 0
 let pollingTimer: ReturnType<typeof setInterval> | undefined
+
+const localeText = computed<ProTableLocaleText>(() => ({
+  ...DEFAULT_LOCALE_TEXT,
+  ...props.localeText,
+}))
+const rootStyle = computed(
+  () =>
+    ({
+      '--antdv-next-pro-color-text': token.value.colorText,
+      '--antdv-next-pro-color-bg-container': token.value.colorBgContainer,
+      '--antdv-next-pro-color-bg-elevated': token.value.colorBgElevated,
+      '--antdv-next-pro-color-fill-alter': token.value.colorFillAlter,
+      '--antdv-next-pro-color-border-secondary': token.value.colorBorderSecondary,
+      '--antdv-next-pro-color-error': token.value.colorError,
+      '--antdv-next-pro-box-shadow-secondary': token.value.boxShadowSecondary,
+    }) as CSSProperties,
+)
 
 const initialCurrent = () => {
   if (props.pagination === false) return 1
@@ -164,13 +198,14 @@ const searchColumnsPerRow = computed(() => {
   const span = Math.min(24, Math.max(1, Math.floor(searchConfig.value.span ?? 8)))
   return Math.max(1, Math.floor(24 / span))
 })
+const collapsedSearchFieldCount = computed(() => Math.max(1, searchColumnsPerRow.value - 1))
 const visibleSearchableColumns = computed(() =>
   searchCollapsed.value
-    ? searchableColumns.value.slice(0, searchColumnsPerRow.value)
+    ? searchableColumns.value.slice(0, collapsedSearchFieldCount.value)
     : searchableColumns.value,
 )
 const showSearchCollapse = computed(
-  () => searchableColumns.value.length > searchColumnsPerRow.value,
+  () => searchableColumns.value.length > collapsedSearchFieldCount.value,
 )
 const searchGridStyle = computed<CSSProperties>(() => ({
   '--antdv-next-pro-search-columns': searchColumnsPerRow.value,
@@ -187,7 +222,7 @@ const locallyQueriedData = computed(() =>
     : applyLocalQuery(
         processedData.value,
         effectiveColumns.value,
-        searchValues.value,
+        props.search === false ? {} : searchValues.value,
         activeSort.value,
         activeFilter.value,
       ),
@@ -288,6 +323,10 @@ const toolbarTitle = computed(() =>
   props.toolbar && typeof props.toolbar === 'object' ? props.toolbar.title : undefined,
 )
 
+const showToolbarTitle = computed(
+  () => toolbarTitle.value !== undefined || Boolean(slots['toolbar-title']),
+)
+
 const toolbarActions = computed(() => {
   if (!props.toolbar || typeof props.toolbar !== 'object') return undefined
   return typeof props.toolbar.actions === 'function'
@@ -298,6 +337,13 @@ const toolbarActions = computed(() => {
 const fullscreenClass = computed(() => ({
   'antdv-next-pro__fullscreen': fallbackFullscreen.value,
 }))
+
+watch(
+  () => props.size,
+  (size) => {
+    density.value = size ?? 'middle'
+  },
+)
 
 watch(
   () => props.dataSource,
@@ -372,7 +418,9 @@ async function refresh(): Promise<void> {
   internalLoading.value = true
   const requestParams = {
     ...(props.params ?? ({} as P)),
-    ...buildSearchParams(effectiveColumns.value, searchValues.value),
+    ...(props.search === false
+      ? {}
+      : buildSearchParams(effectiveColumns.value, searchValues.value)),
     ...(props.pagination === false ? {} : { current: current.value, pageSize: pageSize.value }),
   } as P & { current?: number; pageSize?: number }
   try {
@@ -842,10 +890,14 @@ function showOption(option: 'density' | 'fullScreen' | 'reload' | 'setting'): bo
 
 function optionText(option: 'density' | 'fullScreen' | 'reload' | 'setting'): string {
   if (option === 'density')
-    return density.value === 'small' ? '紧凑' : density.value === 'large' ? '宽松' : '默认'
-  if (option === 'fullScreen') return '全屏'
-  if (option === 'reload') return '刷新'
-  return '列设置'
+    return density.value === 'small'
+      ? localeText.value.densityCompact
+      : density.value === 'large'
+        ? localeText.value.densityLoose
+        : localeText.value.densityDefault
+  if (option === 'fullScreen') return localeText.value.fullScreen
+  if (option === 'reload') return localeText.value.reload
+  return localeText.value.setting
 }
 
 async function copyCell(record: T, column: ProColumns<T>, index: number): Promise<void> {
@@ -942,9 +994,9 @@ defineExpose<
 </script>
 
 <template>
-  <div ref="rootElement" class="antdv-next-pro" :class="fullscreenClass">
+  <div ref="rootElement" class="antdv-next-pro" :class="fullscreenClass" :style="rootStyle">
     <div v-if="showToolbar" class="antdv-next-pro__toolbar">
-      <div class="antdv-next-pro__toolbar-title">
+      <div v-if="showToolbarTitle" class="antdv-next-pro__toolbar-title">
         <slot name="toolbar-title">
           <RenderNode v-if="toolbarTitle !== undefined" :content="toolbarTitle" />
         </slot>
@@ -955,6 +1007,7 @@ defineExpose<
         </slot>
         <Button
           v-if="showOption('density')"
+          type="text"
           size="small"
           :aria-label="optionText('density')"
           :title="optionText('density')"
@@ -964,6 +1017,7 @@ defineExpose<
         </Button>
         <Button
           v-if="showOption('reload')"
+          type="text"
           size="small"
           :loading="effectiveLoading"
           :aria-label="optionText('reload')"
@@ -974,6 +1028,7 @@ defineExpose<
         </Button>
         <Button
           v-if="showOption('fullScreen')"
+          type="text"
           size="small"
           :aria-label="optionText('fullScreen')"
           :title="optionText('fullScreen')"
@@ -983,6 +1038,7 @@ defineExpose<
         </Button>
         <Button
           v-if="showOption('setting')"
+          type="text"
           size="small"
           :aria-label="optionText('setting')"
           :title="optionText('setting')"
@@ -1028,23 +1084,37 @@ defineExpose<
             @update:value="setSearchValue(column, $event)"
           />
         </label>
-      </div>
-      <div class="antdv-next-pro__search-actions">
-        <Button
-          v-if="showSearchCollapse"
-          class="antdv-next-pro__search-collapse"
-          type="link"
-          html-type="button"
-          @click="toggleSearchCollapsed"
-        >
-          {{ searchCollapsed ? '展开' : '收起' }}
-        </Button>
-        <Button html-type="button" @click="resetSearch">
-          {{ typeof props.search === 'object' ? (props.search.resetText ?? '重置') : '重置' }}
-        </Button>
-        <Button type="primary" html-type="submit">
-          {{ typeof props.search === 'object' ? (props.search.searchText ?? '查询') : '查询' }}
-        </Button>
+        <div class="antdv-next-pro__search-actions">
+          <Button html-type="button" @click="resetSearch">
+            {{
+              typeof props.search === 'object'
+                ? (props.search.resetText ?? localeText.reset)
+                : localeText.reset
+            }}
+          </Button>
+          <Button type="primary" html-type="submit">
+            {{
+              typeof props.search === 'object'
+                ? (props.search.searchText ?? localeText.search)
+                : localeText.search
+            }}
+          </Button>
+          <Button
+            v-if="showSearchCollapse"
+            class="antdv-next-pro__search-collapse"
+            type="link"
+            html-type="button"
+            icon-placement="end"
+            :aria-expanded="!searchCollapsed"
+            @click="toggleSearchCollapsed"
+          >
+            {{ searchCollapsed ? localeText.expand : localeText.collapse }}
+            <template #icon>
+              <DownOutlined v-if="searchCollapsed" aria-hidden="true" />
+              <UpOutlined v-else aria-hidden="true" />
+            </template>
+          </Button>
+        </div>
       </div>
     </form>
 
@@ -1155,10 +1225,23 @@ defineExpose<
 </template>
 
 <style scoped>
+.antdv-next-pro {
+  color: var(--antdv-next-pro-color-text);
+}
+
+.antdv-next-pro:fullscreen,
+.antdv-next-pro__fullscreen {
+  background: var(--antdv-next-pro-color-bg-container, #fff);
+}
+
 .antdv-next-pro__toolbar-title {
   min-width: 0;
   font-size: 16px;
   font-weight: 600;
+}
+
+.antdv-next-pro__toolbar-actions {
+  margin-inline-start: auto;
 }
 
 .antdv-next-pro__column-settings {
@@ -1167,20 +1250,22 @@ defineExpose<
   gap: 12px;
   margin-block: -8px 16px;
   padding: 12px;
-  border: 1px solid rgba(5, 5, 5, 0.08);
+  border: 1px solid var(--antdv-next-pro-color-border-secondary);
   border-radius: 8px;
-  background: #fff;
+  background: var(--antdv-next-pro-color-bg-elevated);
+  box-shadow: var(--antdv-next-pro-box-shadow-secondary);
 }
 
 .antdv-next-pro__search {
   padding: 16px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--antdv-next-pro-color-fill-alter, rgba(0, 0, 0, 0.02));
 }
 
 .antdv-next-pro__search-fields {
   display: grid;
   grid-template-columns: repeat(var(--antdv-next-pro-search-columns, 3), minmax(0, 1fr));
+  align-items: center;
   gap: 16px;
 }
 
@@ -1195,6 +1280,16 @@ defineExpose<
   white-space: nowrap;
 }
 
+.antdv-next-pro__search-actions {
+  display: flex;
+  grid-column: -2 / -1;
+  align-items: center;
+  justify-content: flex-end;
+  justify-self: end;
+  gap: 8px;
+  white-space: nowrap;
+}
+
 .antdv-next-pro__editable-cell :deep(.ant-input),
 .antdv-next-pro__editable-cell :deep(.ant-input-number),
 .antdv-next-pro__editable-cell :deep(.ant-select) {
@@ -1203,7 +1298,7 @@ defineExpose<
 
 .antdv-next-pro__validation-error {
   margin-block-start: 4px;
-  color: #ff4d4f;
+  color: var(--antdv-next-pro-color-error, #ff4d4f);
   font-size: 12px;
 }
 
@@ -1226,6 +1321,10 @@ defineExpose<
 @media (width <= 768px) {
   .antdv-next-pro__search-fields {
     grid-template-columns: 1fr;
+  }
+
+  .antdv-next-pro__search-actions {
+    grid-column: 1 / -1;
   }
 }
 </style>

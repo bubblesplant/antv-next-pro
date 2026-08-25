@@ -35,7 +35,7 @@
   z-index: 1000;
   overflow: auto;
   padding: 24px;
-  background: #fff;
+  background: var(--antdv-next-pro-color-bg-container, #fff);
 }
 
 .antdv-next-pro-schema-form__step-content {

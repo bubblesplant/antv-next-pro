@@ -1,5 +1,11 @@
 # antdv-next-pro
 
+## 0.1.1
+
+### Patch Changes
+
+- [`9098473`](https://github.com/bubblesplant/antv-next-pro/commit/9098473d6821a7226dcecc1f099744b3f9353341) Thanks [@bubblesplant](https://github.com/bubblesplant)! - 修改 protable 工具栏样式
+
 ## 0.1.0
 
 ### Minor Changes

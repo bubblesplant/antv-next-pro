@@ -1,5 +1,11 @@
 # antdv-next-pro
 
+## 0.1.2
+
+### Patch Changes
+
+- [`8a97e86`](https://github.com/bubblesplant/antv-next-pro/commit/8a97e867255152467a474e9f18d7af83471263bd) Thanks [@bubblesplant](https://github.com/bubblesplant)! - docs 美化 vp stage 关闭颜色
+
 ## 0.1.1
 
 ### Patch Changes

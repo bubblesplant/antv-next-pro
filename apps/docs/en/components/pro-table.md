@@ -1,3 +1,7 @@
+---
+pageClass: component-doc
+---
+
 <script setup>
 import ProTableDemo from '../../examples/ProTableDemo.vue'
 </script>
@@ -6,11 +10,26 @@ import ProTableDemo from '../../examples/ProTableDemo.vue'
 
 `ProTable` targets search and browsing workflows while coordinating local/remote data, search, pagination, sorting, filters, column state, selection, and row editing.
 
+## When to use
+
+Use it when a page needs to organize querying, data loading, pagination, column settings, selection, or row editing around a table.
+
+## Examples
+
+### Request, editing, and slots
+
 <ClientOnly>
   <ProTableDemo />
 </ClientOnly>
 
-## Data modes
+<details class="demo-source">
+<summary>View source</summary>
+
+<<< ../../examples/ProTableDemo.vue
+
+</details>
+
+### Data modes
 
 Pass `dataSource` or `defaultDataSource` for local mode. Search, sorting, filters, and pagination operate on the local rows:
 
@@ -42,7 +61,7 @@ Search, pagination, sorting, filters, and external `params` all feed this reques
 
 `manualRequest` skips the initial request; call `reload()` through the component ref later. `postData` synchronously transforms successful data before display.
 
-## Search and collapse
+### Search and collapse
 
 `search: false` disables the search area. A column with `dataIndex` becomes searchable unless `hideInSearch` or `search: false` is set. `search.transform` can map one field to different request parameters.
 
@@ -76,32 +95,7 @@ Use `collapsed` and `search-collapse` for controlled state:
 
 `span` defaults to `8`, or three fields in a 24-column row. Collapsed mode renders the first row only. `search.onCollapse(next)` is also available.
 
-## Main props
-
-| Prop                           | Type                                      | Description                                            |
-| ------------------------------ | ----------------------------------------- | ------------------------------------------------------ |
-| `columns`                      | `ProColumns<T>[]`                         | Shared table, search, and editor description           |
-| `dataSource`                   | `T[]`                                     | Controlled local rows; supports `v-model:data-source`  |
-| `defaultDataSource`            | `T[]`                                     | Uncontrolled initial rows                              |
-| `request`                      | `ProRequest<T, P>`                        | Remote Promise request                                 |
-| `params`                       | `P`                                       | Extra params; changes reset the page and reload        |
-| `postData`                     | `(data: T[]) => T[]`                      | Synchronous display transform                          |
-| `rowKey`                       | `keyof T \| string \| (record) => ProKey` | Unique row identity, defaults to `id`                  |
-| `loading`                      | `boolean`                                 | External loading state                                 |
-| `search`                       | `false \| ProTableSearchConfig`           | Search and collapse options                            |
-| `pagination`                   | `false \| ProTablePagination`             | Page state and options                                 |
-| `options`                      | `false \| ProTableOptions`                | Density, fullscreen, reload, settings                  |
-| `toolbar`                      | `false \| { title?, actions? }`           | Toolbar content; slots are also available              |
-| `rowSelection`                 | `false \| Record<string, unknown>`        | Antdv Next row-selection config                        |
-| `columnsState`                 | `ProColumnsStateConfig`                   | Visibility, order, fixed-state, and persistence config |
-| `editable`                     | `false \| EditableConfig<T>`              | Single/multiple row editing lifecycle                  |
-| `editableKeys`                 | `ProKey[]`                                | Editing keys; supports `v-model:editable-keys`         |
-| `polling`                      | `number`                                  | Poll interval in milliseconds; pauses when hidden      |
-| `revalidateOnFocus`            | `boolean`                                 | Reload on window focus                                 |
-| `manualRequest`                | `boolean`                                 | Skip the initial automatic request                     |
-| `scroll` / `size` / `bordered` | Matching Antdv Next values                | Scrolling, density, and borders                        |
-
-## Column state and settings
+### Column state and settings
 
 The built-in column settings panel in the toolbar only toggles visibility. Control column order and fixed placement programmatically with `order` and `fixed` under each column key in `columnsState` (the column `key` takes precedence, otherwise `dataIndex` is used):
 
@@ -128,7 +122,7 @@ const tableColumnsState = computed<ProColumnsStateConfig>(() => ({
 
 Pair `value` with `onChange` for fully controlled state, or use `defaultValue` for an uncontrolled initial state. With `persistenceKey`, the state can be stored in `localStorage` or `sessionStorage`, including `show` changes made by the panel and programmatic `order` / `fixed` values.
 
-## Built-in editing
+### Built-in editing
 
 `ProTable` uses the same editing state machine as `EditableProTable`:
 
@@ -152,7 +146,49 @@ Column `editable` can vary by row. `formItemProps.rules` provides sync/async val
 
 `addEditRecord(record, { position, parentKey, newRecordType })` supports top/bottom insertion, tree parents, and cache/dataSource creator modes. Every new record must have a unique `rowKey`.
 
-## Named slots
+## API
+
+### Props
+
+| Prop                           | Type                                      | Description                                            |
+| ------------------------------ | ----------------------------------------- | ------------------------------------------------------ |
+| `columns`                      | `ProColumns<T>[]`                         | Shared table, search, and editor description           |
+| `dataSource`                   | `T[]`                                     | Controlled local rows; supports `v-model:data-source`  |
+| `defaultDataSource`            | `T[]`                                     | Uncontrolled initial rows                              |
+| `request`                      | `ProRequest<T, P>`                        | Remote Promise request                                 |
+| `params`                       | `P`                                       | Extra params; changes reset the page and reload        |
+| `postData`                     | `(data: T[]) => T[]`                      | Synchronous display transform                          |
+| `rowKey`                       | `keyof T \| string \| (record) => ProKey` | Unique row identity, defaults to `id`                  |
+| `loading`                      | `boolean`                                 | External loading state                                 |
+| `search`                       | `false \| ProTableSearchConfig`           | Search and collapse options                            |
+| `pagination`                   | `false \| ProTablePagination`             | Page state and options                                 |
+| `options`                      | `false \| ProTableOptions`                | Density, fullscreen, reload, settings                  |
+| `toolbar`                      | `false \| { title?, actions? }`           | Toolbar content; slots are also available              |
+| `rowSelection`                 | `false \| Record<string, unknown>`        | Antdv Next row-selection config                        |
+| `columnsState`                 | `ProColumnsStateConfig`                   | Visibility, order, fixed-state, and persistence config |
+| `editable`                     | `false \| EditableConfig<T>`              | Single/multiple row editing lifecycle                  |
+| `editableKeys`                 | `ProKey[]`                                | Editing keys; supports `v-model:editable-keys`         |
+| `polling`                      | `number`                                  | Poll interval in milliseconds; pauses when hidden      |
+| `revalidateOnFocus`            | `boolean`                                 | Reload on window focus                                 |
+| `manualRequest`                | `boolean`                                 | Skip the initial automatic request                     |
+| `scroll` / `size` / `bordered` | Matching Antdv Next values                | Scrolling, density, and borders                        |
+
+### Events
+
+| Event                  | Arguments                     | Description                       |
+| ---------------------- | ----------------------------- | --------------------------------- |
+| `update:data-source`   | `rows`                        | `v-model:data-source` update      |
+| `update:editable-keys` | `keys`                        | `v-model:editable-keys` update    |
+| `data-source-change`   | `rows, changedRecord?`        | Edit, creator, or delete mutation |
+| `request-error`        | `error`                       | Remote request failure            |
+| `editable-error`       | `error`                       | Save/delete lifecycle failure     |
+| `validation-error`     | `key, errors`                 | Row validation failure            |
+| `search-collapse`      | `collapsed`                   | Search collapse change            |
+| `change`               | `pagination, filters, sorter` | Page, filter, or sort change      |
+| `selection-change`     | `keys, rows`                  | Row selection change              |
+| `load`                 | `rows, total`                 | Accepted remote result            |
+
+### Slots
 
 The column key is `column.key` or the dot-joined `dataIndex`.
 
@@ -178,22 +214,7 @@ The column key is `column.key` or the dot-joined `dataIndex`.
 
 A cell slot takes precedence over the default display and editor. Prefer a header-only slot for editable columns unless the slot handles editing itself.
 
-## Models and events
-
-| Event                  | Arguments                     | Description                       |
-| ---------------------- | ----------------------------- | --------------------------------- |
-| `update:data-source`   | `rows`                        | `v-model:data-source` update      |
-| `update:editable-keys` | `keys`                        | `v-model:editable-keys` update    |
-| `data-source-change`   | `rows, changedRecord?`        | Edit, creator, or delete mutation |
-| `request-error`        | `error`                       | Remote request failure            |
-| `editable-error`       | `error`                       | Save/delete lifecycle failure     |
-| `validation-error`     | `key, errors`                 | Row validation failure            |
-| `search-collapse`      | `collapsed`                   | Search collapse change            |
-| `change`               | `pagination, filters, sorter` | Page, filter, or sort change      |
-| `selection-change`     | `keys, rows`                  | Row selection change              |
-| `load`                 | `rows, total`                 | Accepted remote result            |
-
-## Component ref
+### Component ref
 
 ```ts
 import type { ProTableInstance } from 'antdv-next-pro'

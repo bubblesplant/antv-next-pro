@@ -81,7 +81,7 @@ const patchFirst = () => {
 </script>
 
 <template>
-  <div class="demo-frame">
+  <div class="demo-frame vp-raw">
     <p class="demo-label">LIVE · CONTROLLED VALUE + COMPONENT REF</p>
     <div class="demo-actions">
       <span>编辑中：{{ editableKeys.length ? editableKeys.join(', ') : '无' }}</span>

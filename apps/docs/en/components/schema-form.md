@@ -1,3 +1,7 @@
+---
+pageClass: component-doc
+---
+
 <script setup>
 import SchemaFormDemo from '../../examples/SchemaFormDemo.vue'
 </script>
@@ -6,11 +10,26 @@ import SchemaFormDemo from '../../examples/SchemaFormDemo.vue'
 
 `SchemaForm` generates fields from the single `columns` schema and manages its model with Vue `v-model`. It shares `dataIndex`, `valueType`, `valueEnum`, validation, and transforms with the table components.
 
+## When to use
+
+Use it when one `columns` schema should describe standard forms, query filters, overlay forms, or step forms while sharing initialization, validation, transformation, and submission behavior.
+
+## Examples
+
+### Async options, URL synchronization, and slots
+
 <ClientOnly>
   <SchemaFormDemo />
 </ClientOnly>
 
-## Basic usage
+<details class="demo-source">
+  <summary>View full code</summary>
+
+<<< ../../examples/SchemaFormDemo.vue
+
+</details>
+
+### Basic usage
 
 ```vue
 <SchemaForm ref="formRef" v-model="form" :columns="columns" @finish="save" />
@@ -31,29 +50,7 @@ const loadInitialValues = async (params?: Record<string, unknown>) => {
 }
 ```
 
-## Main props
-
-| Prop                      | Type                                   | Description                                 |
-| ------------------------- | -------------------------------------- | ------------------------------------------- |
-| `columns`                 | `SchemaFormColumn<T>[]`                | The single schema entry point               |
-| `modelValue`              | `Partial<T>`                           | Standard `v-model` value                    |
-| `initialValues`           | `Partial<T>`                           | Initialization and reset baseline           |
-| `request`                 | `(params?) => Promise<Partial<T>>`     | Asynchronous initial values                 |
-| `params`                  | `Record<string, unknown>`              | Initialization request params               |
-| `layoutType`              | `SchemaFormLayoutType`                 | Form layout; defaults to `Form`             |
-| `open`                    | `boolean`                              | Modal/Drawer state; supports `v-model:open` |
-| `current`                 | `number`                               | Step index; supports `v-model:current`      |
-| `title` / `width`         | Text or size                           | Overlay title and width                     |
-| `labelCol` / `wrapperCol` | Antdv Next Form config                 | Label and control layout                    |
-| `grid`                    | `boolean`                              | Responsive Row/Col grid                     |
-| `readonly`                | `boolean`                              | Whole-form readonly mode                    |
-| `urlSync`                 | `boolean \| { key?, mode? }`           | Query/hash synchronization                  |
-| `submitter`               | `false \| { submitText?, resetText? }` | Default action area                         |
-| `style`                   | `CSSProperties`                        | Root style                                  |
-
-Columns also accept `component`, `colProps`, `rowProps`, `tooltip`, and `extra`.
-
-## `valueType` and async options
+### `valueType` and async options
 
 | Type                             | Generated control/structure          |
 | -------------------------------- | ------------------------------------ |
@@ -90,7 +87,7 @@ const channelColumn: SchemaFormColumn<Brief> = {
 
 Options reload when `request` or `params` changes, and only the latest concurrent result is accepted.
 
-## Layout types
+### Layout types
 
 | `layoutType`  | Scenario                                |
 | ------------- | --------------------------------------- |
@@ -118,7 +115,7 @@ import { ModalForm, StepsForm } from 'antdv-next-pro'
 
 For multiple steps, every top-level column must be a `group` or `formSet` with child columns. Each top-level group becomes one step. `next()` validates the current step before advancing; the last step submits the complete result. A Steps title may navigate directly to an earlier step. Clicking a later step invokes one validated `next()` transition and cannot bypass the current step.
 
-## Composition and dynamic schemas
+### Composition and dynamic schemas
 
 ```ts
 const columns: SchemaFormColumn<Project>[] = [
@@ -149,7 +146,7 @@ const columns: SchemaFormColumn<Project>[] = [
 
 `columns` may be computed; adding or removing columns from external state creates dynamic fields. `dependencies` passes dependency values to field slots. A `dependency` column with `renderFormItem` creates a custom reactive region.
 
-## Value transforms
+### Value transforms
 
 `convertValue` only processes values entering the form, including initialization, external `v-model` updates, and `setFieldsValue`. `transform` only processes submission output when `submit()` runs. `validate()` validates and returns the raw form values without applying `transform`.
 
@@ -170,7 +167,62 @@ const columns = [
 
 An object returned by `transform` merges into the final `submit()` result. A scalar remains under the original `dataIndex`. Use `validate()` when you need validated raw form values and `submit()` when you need the transformed API payload.
 
-## Named slots
+### URL synchronization
+
+```vue
+<!-- one query parameter per field -->
+<SchemaForm :url-sync="true" />
+
+<!-- complete model JSON in the filters parameter -->
+<SchemaForm :url-sync="{ key: 'filters' }" />
+
+<!-- one hash parameter per field -->
+<SchemaForm :url-sync="{ mode: 'hash' }" />
+```
+
+Per-field mode removes empty URL values; named-key mode stores the complete model. The component listens to `popstate` / `hashchange` and hydrates again, which is useful for shareable filters. URL values override the request result during initialization but are still overridden by explicit `modelValue`.
+
+## API
+
+### Props
+
+| Prop                      | Type                                   | Description                                 |
+| ------------------------- | -------------------------------------- | ------------------------------------------- |
+| `columns`                 | `SchemaFormColumn<T>[]`                | The single schema entry point               |
+| `modelValue`              | `Partial<T>`                           | Standard `v-model` value                    |
+| `initialValues`           | `Partial<T>`                           | Initialization and reset baseline           |
+| `request`                 | `(params?) => Promise<Partial<T>>`     | Asynchronous initial values                 |
+| `params`                  | `Record<string, unknown>`              | Initialization request params               |
+| `layoutType`              | `SchemaFormLayoutType`                 | Form layout; defaults to `Form`             |
+| `open`                    | `boolean`                              | Modal/Drawer state; supports `v-model:open` |
+| `current`                 | `number`                               | Step index; supports `v-model:current`      |
+| `title` / `width`         | Text or size                           | Overlay title and width                     |
+| `labelCol` / `wrapperCol` | Antdv Next Form config                 | Label and control layout                    |
+| `grid`                    | `boolean`                              | Responsive Row/Col grid                     |
+| `readonly`                | `boolean`                              | Whole-form readonly mode                    |
+| `urlSync`                 | `boolean \| { key?, mode? }`           | Query/hash synchronization                  |
+| `submitter`               | `false \| { submitText?, resetText? }` | Default action area                         |
+| `style`                   | `CSSProperties`                        | Root style                                  |
+
+Columns also accept `component`, `colProps`, `rowProps`, `tooltip`, and `extra`.
+
+### Events
+
+| Event                | Arguments         | Description                             |
+| -------------------- | ----------------- | --------------------------------------- |
+| `update:model-value` | `values`          | Default `v-model` update                |
+| `update:open`        | `open`            | Overlay two-way binding                 |
+| `update:current`     | `current`         | Step two-way binding                    |
+| `change`             | `values`          | Any field change                        |
+| `values-change`      | `changed, values` | `changed` contains `path` and `value`   |
+| `submit` / `finish`  | `values`          | Validated, transformed result           |
+| `reset`              | `values`          | Restored initialization snapshot        |
+| `open` / `close`     | none              | Component method or overlay interaction |
+| `current-change`     | `current`         | Active step change                      |
+| `request-error`      | `error`           | Async initial value failure             |
+| `error`              | `error`           | Initialization or validation failure    |
+
+### Slots
 
 Field paths are dot-joined, so `['profile', 'name']` becomes `profile.name`.
 
@@ -210,38 +262,7 @@ Field paths are dot-joined, so `['profile', 'name']` becomes `profile.name`.
 `update(nextValue)` inside a field slot updates the form, `v-model`, URL, and related events.
 `trigger`, `title`, and `footer` apply to `ModalForm` / `DrawerForm`. `step-title`, `step-content`, and `step-actions` apply to `StepForm` / `StepsForm`. Call `content()` from `step-content` to render the current step's default fields.
 
-## URL synchronization
-
-```vue
-<!-- one query parameter per field -->
-<SchemaForm :url-sync="true" />
-
-<!-- complete model JSON in the filters parameter -->
-<SchemaForm :url-sync="{ key: 'filters' }" />
-
-<!-- one hash parameter per field -->
-<SchemaForm :url-sync="{ mode: 'hash' }" />
-```
-
-Per-field mode removes empty URL values; named-key mode stores the complete model. The component listens to `popstate` / `hashchange` and hydrates again, which is useful for shareable filters. URL values override the request result during initialization but are still overridden by explicit `modelValue`.
-
-## Events
-
-| Event                | Arguments         | Description                             |
-| -------------------- | ----------------- | --------------------------------------- |
-| `update:model-value` | `values`          | Default `v-model` update                |
-| `update:open`        | `open`            | Overlay two-way binding                 |
-| `update:current`     | `current`         | Step two-way binding                    |
-| `change`             | `values`          | Any field change                        |
-| `values-change`      | `changed, values` | `changed` contains `path` and `value`   |
-| `submit` / `finish`  | `values`          | Validated, transformed result           |
-| `reset`              | `values`          | Restored initialization snapshot        |
-| `open` / `close`     | none              | Component method or overlay interaction |
-| `current-change`     | `current`         | Active step change                      |
-| `request-error`      | `error`           | Async initial value failure             |
-| `error`              | `error`           | Initialization or validation failure    |
-
-## Component ref
+### Component instance
 
 ```ts
 const formRef = ref<SchemaFormInstance<Brief>>()

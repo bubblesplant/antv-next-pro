@@ -66,7 +66,7 @@ const fillExample = () => {
 </script>
 
 <template>
-  <div class="demo-frame">
+  <div class="demo-frame vp-raw">
     <p class="demo-label">LIVE · ASYNC OPTIONS + URL SYNC + SLOTS</p>
     <SchemaForm
       ref="formRef"

@@ -1,3 +1,7 @@
+---
+pageClass: component-doc
+---
+
 <script setup>
 import EditableProTableDemo from '../../examples/EditableProTableDemo.vue'
 </script>
@@ -6,11 +10,28 @@ import EditableProTableDemo from '../../examples/EditableProTableDemo.vue'
 
 `EditableProTable` reuses the `ProTable` column model, editing state machine, and validation logic for workflows where the whole table is one form field. Search, pagination, table options, and focus revalidation are disabled by default.
 
+## When to use
+
+- Use it when users need to add, edit, or delete multiple records continuously and submit the whole table as one controlled value.
+- Use it to reuse `ProTable` columns, validation, and slots while disabling browsing-oriented features such as search and pagination by default.
+- For editing a single record in a workflow that is still primarily about querying and browsing, use the built-in editing capabilities of `ProTable` instead.
+
+## Examples
+
+### Controlled editing, record creation, and component instance
+
 <ClientOnly>
   <EditableProTableDemo />
 </ClientOnly>
 
-## Controlled data and edit state
+<details class="demo-source">
+  <summary>View full code</summary>
+
+<<< ../../examples/EditableProTableDemo.vue
+
+</details>
+
+### Controlled data and edit state
 
 `v-model:value` is the only controlled whole-table data entry point; a conflicting `dataSource` prop is not exposed. `defaultValue` supplies uncontrolled initial rows.
 
@@ -27,7 +48,7 @@ import EditableProTableDemo from '../../examples/EditableProTableDemo.vue'
 
 `editable.type` is `single` or `multiple`. `onSave`, `onCancel`, and `onDelete` may return Promises. Returning `false` from save or delete keeps the current edit/data state. Column-level `editable` can vary by record.
 
-## Validation and lifecycle
+### Validation and lifecycle
 
 Place validation in column `formItemProps.rules`:
 
@@ -57,7 +78,7 @@ const editable: EditableConfig<Member> = {
 
 `saveEditable` returns `false` when validation fails. Lifecycle exceptions emit `editable-error`. The component-level `formItemProps` wraps the whole EditableProTable in an Antdv Next FormItem for outer-form integration.
 
-## Record creator
+### Record creator
 
 ```ts
 const recordCreatorProps: RecordCreatorProps<Member> = {
@@ -82,7 +103,9 @@ const recordCreatorProps: RecordCreatorProps<Member> = {
 
 Every new row must have a unique `rowKey`. `maxLength` counts the flattened tree, hides the button at the limit, and is also enforced by ref-based `addEditRecord`.
 
-## Main props
+## API
+
+### Props
 
 | Prop                                        | Type                                    | Description                                     |
 | ------------------------------------------- | --------------------------------------- | ----------------------------------------------- |
@@ -100,7 +123,7 @@ Every new row must have a unique `rowKey`. `maxLength` counts the flattened tree
 | `polling` / `manualRequest`                 | Same as ProTable                        | Remote request controls                         |
 | `scroll` / `size` / `bordered`              | Same as ProTable                        | Table presentation                              |
 
-## Callback props and Vue events
+### Events
 
 `onValuesChange` / `onTableChange` props and `@values-change` / `@table-change` are two syntaxes for the same Vue listener channel. Choose one syntax; every change is dispatched exactly once, so do not bind the same handler through both forms:
 
@@ -113,7 +136,7 @@ Every new row must have a unique `rowKey`. `maxLength` counts the flattened tree
 | `request-error`        | `error`                       | Remote request failure         |
 | `editable-error`       | `error`                       | Editing lifecycle failure      |
 
-## Slots
+### Slots
 
 EditableProTable forwards every slot to its inner ProTable:
 
@@ -122,7 +145,7 @@ EditableProTable forwards every slot to its inner ProTable:
 - `cell-${columnKey}` or `${columnKey}` with `{ value, record, index, column, editable }`.
 - Other slots supported by the underlying Antdv Next Table.
 
-## Component ref
+### Component instance
 
 `EditableProTableInstance<T>` includes all ProTable methods and adds whole-table access:
 

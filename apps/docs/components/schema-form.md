@@ -1,3 +1,7 @@
+---
+pageClass: component-doc
+---
+
 <script setup>
 import SchemaFormDemo from '../examples/SchemaFormDemo.vue'
 </script>
@@ -6,11 +10,25 @@ import SchemaFormDemo from '../examples/SchemaFormDemo.vue'
 
 `SchemaForm` 使用唯一的 `columns` Schema 生成字段，并以 Vue `v-model` 管理表单模型。它与表格组件共享 `dataIndex`、`valueType`、`valueEnum`、校验和转换约定。
 
+## 何时使用
+
+当需要通过同一套 `columns` 描述普通表单、查询筛选、弹层表单或步骤表单，并统一管理初始值、校验、转换与提交时使用。
+
+## 示例
+
+### 异步选项、URL 同步与插槽
+
 <ClientOnly>
   <SchemaFormDemo />
 </ClientOnly>
 
-## 基础用法
+<details class="demo-source"><summary>查看完整代码</summary>
+
+<<< ../examples/SchemaFormDemo.vue
+
+</details>
+
+### 基础用法
 
 ```vue
 <SchemaForm ref="formRef" v-model="form" :columns="columns" @finish="save" />
@@ -31,29 +49,7 @@ const loadInitialValues = async (params?: Record<string, unknown>) => {
 }
 ```
 
-## 主要 Props
-
-| Prop                      | 类型                                   | 说明                                       |
-| ------------------------- | -------------------------------------- | ------------------------------------------ |
-| `columns`                 | `SchemaFormColumn<T>[]`                | 唯一 Schema 入口                           |
-| `modelValue`              | `Partial<T>`                           | 标准 `v-model` 值                          |
-| `initialValues`           | `Partial<T>`                           | 初始化与重置基线                           |
-| `request`                 | `(params?) => Promise<Partial<T>>`     | 异步初始值                                 |
-| `params`                  | `Record<string, unknown>`              | 初始化请求参数                             |
-| `layoutType`              | `SchemaFormLayoutType`                 | 表单布局，默认 `Form`                      |
-| `open`                    | `boolean`                              | Modal/Drawer 打开状态，支持 `v-model:open` |
-| `current`                 | `number`                               | 步骤索引，支持 `v-model:current`           |
-| `title` / `width`         | 文本或尺寸                             | 弹层标题和宽度                             |
-| `labelCol` / `wrapperCol` | Antdv Next Form 配置                   | 标签与控件布局                             |
-| `grid`                    | `boolean`                              | 使用响应式 Row/Col 网格                    |
-| `readonly`                | `boolean`                              | 全表单只读                                 |
-| `urlSync`                 | `boolean \| { key?, mode? }`           | query/hash 同步                            |
-| `submitter`               | `false \| { submitText?, resetText? }` | 默认操作区                                 |
-| `style`                   | `CSSProperties`                        | 根容器样式                                 |
-
-列还支持 `component`、`colProps`、`rowProps`、`tooltip` 和 `extra`。
-
-## `valueType` 与异步选项
+### `valueType` 与异步选项
 
 | 类型                             | 生成控件/结构               |
 | -------------------------------- | --------------------------- |
@@ -90,7 +86,7 @@ const channelColumn: SchemaFormColumn<Brief> = {
 
 异步选项会在 `request` 或 `params` 变化时重载，并同样只接纳最后一次结果。
 
-## 布局类型
+### 布局类型
 
 | `layoutType`  | 场景                               |
 | ------------- | ---------------------------------- |
@@ -118,7 +114,7 @@ import { ModalForm, StepsForm } from 'antdv-next-pro'
 
 多步骤 Schema 要求顶层列全部是带子列的 `group` 或 `formSet`；每个顶层分组成为一步。`next()` 会先校验当前步骤，最后一步提交完整结果。Steps 标题允许直接点击返回已访问的前序步骤；点击后续步骤只会触发一次 `next()`，校验成功后前进一步，不能绕过当前步骤校验。
 
-## 组合字段与动态 Schema
+### 组合字段与动态 Schema
 
 ```ts
 const columns: SchemaFormColumn<Project>[] = [
@@ -149,7 +145,7 @@ const columns: SchemaFormColumn<Project>[] = [
 
 `columns` 可以是 computed 结果；依赖外部状态增删列即可生成动态字段。`dependencies` 会把依赖值传给字段插槽，`dependency` 搭配 `renderFormItem` 可渲染联动区域。
 
-## 值转换
+### 值转换
 
 `convertValue` 只处理进入表单的数据，包括初始化、外部 `v-model` 更新和 `setFieldsValue`；`transform` 只在 `submit()` 时处理提交输出。`validate()` 仅校验并返回表单中的原始值，不执行 `transform`。
 
@@ -170,7 +166,62 @@ const columns = [
 
 `transform` 返回对象时会合并到 `submit()` 的最终结果；返回普通值时保留原 `dataIndex`。因此可以先用 `validate()` 读取校验后的原始表单值，再用 `submit()` 获取面向接口的转换结果。
 
-## 命名插槽
+### URL 同步
+
+```vue
+<!-- 每个字段写入 query -->
+<SchemaForm :url-sync="true" />
+
+<!-- 完整模型以 JSON 写入 filters 参数 -->
+<SchemaForm :url-sync="{ key: 'filters' }" />
+
+<!-- 每个字段写入 hash -->
+<SchemaForm :url-sync="{ mode: 'hash' }" />
+```
+
+字段模式会删除 URL 中的空值；命名 key 模式存储完整模型。组件监听 `popstate` / `hashchange` 并回填表单，适合可分享的筛选条件。URL 值在初始化时覆盖 `request` 结果，但仍会被显式 `modelValue` 覆盖。
+
+## API
+
+### 属性
+
+| Prop                      | 类型                                   | 说明                                       |
+| ------------------------- | -------------------------------------- | ------------------------------------------ |
+| `columns`                 | `SchemaFormColumn<T>[]`                | 唯一 Schema 入口                           |
+| `modelValue`              | `Partial<T>`                           | 标准 `v-model` 值                          |
+| `initialValues`           | `Partial<T>`                           | 初始化与重置基线                           |
+| `request`                 | `(params?) => Promise<Partial<T>>`     | 异步初始值                                 |
+| `params`                  | `Record<string, unknown>`              | 初始化请求参数                             |
+| `layoutType`              | `SchemaFormLayoutType`                 | 表单布局，默认 `Form`                      |
+| `open`                    | `boolean`                              | Modal/Drawer 打开状态，支持 `v-model:open` |
+| `current`                 | `number`                               | 步骤索引，支持 `v-model:current`           |
+| `title` / `width`         | 文本或尺寸                             | 弹层标题和宽度                             |
+| `labelCol` / `wrapperCol` | Antdv Next Form 配置                   | 标签与控件布局                             |
+| `grid`                    | `boolean`                              | 使用响应式 Row/Col 网格                    |
+| `readonly`                | `boolean`                              | 全表单只读                                 |
+| `urlSync`                 | `boolean \| { key?, mode? }`           | query/hash 同步                            |
+| `submitter`               | `false \| { submitText?, resetText? }` | 默认操作区                                 |
+| `style`                   | `CSSProperties`                        | 根容器样式                                 |
+
+列还支持 `component`、`colProps`、`rowProps`、`tooltip` 和 `extra`。
+
+### 事件
+
+| 事件                 | 参数              | 说明                           |
+| -------------------- | ----------------- | ------------------------------ |
+| `update:model-value` | `values`          | 默认 `v-model` 更新            |
+| `update:open`        | `open`            | 弹层双向绑定                   |
+| `update:current`     | `current`         | 步骤双向绑定                   |
+| `change`             | `values`          | 任意字段变化                   |
+| `values-change`      | `changed, values` | `changed` 含 `path` 与 `value` |
+| `submit` / `finish`  | `values`          | 校验与 transform 后的结果      |
+| `reset`              | `values`          | 恢复初始化快照                 |
+| `open` / `close`     | 无                | 组件方法或弹层交互             |
+| `current-change`     | `current`         | 当前步骤变化                   |
+| `request-error`      | `error`           | 异步初始值失败                 |
+| `error`              | `error`           | 初始化或校验失败               |
+
+### 插槽
 
 字段路径以点连接，例如 `['profile', 'name']` 对应 `profile.name`。
 
@@ -210,38 +261,7 @@ const columns = [
 字段插槽中的 `update(nextValue)` 会更新表单、`v-model`、URL 和相关事件。
 `trigger`、`title`、`footer` 用于 `ModalForm` / `DrawerForm`；`step-title`、`step-content`、`step-actions` 用于 `StepForm` / `StepsForm`。`step-content` 的 `content()` 可渲染当前步骤的默认字段。
 
-## URL 同步
-
-```vue
-<!-- 每个字段写入 query -->
-<SchemaForm :url-sync="true" />
-
-<!-- 完整模型以 JSON 写入 filters 参数 -->
-<SchemaForm :url-sync="{ key: 'filters' }" />
-
-<!-- 每个字段写入 hash -->
-<SchemaForm :url-sync="{ mode: 'hash' }" />
-```
-
-字段模式会删除 URL 中的空值；命名 key 模式存储完整模型。组件监听 `popstate` / `hashchange` 并回填表单，适合可分享的筛选条件。URL 值在初始化时覆盖 `request` 结果，但仍会被显式 `modelValue` 覆盖。
-
-## 事件
-
-| 事件                 | 参数              | 说明                           |
-| -------------------- | ----------------- | ------------------------------ |
-| `update:model-value` | `values`          | 默认 `v-model` 更新            |
-| `update:open`        | `open`            | 弹层双向绑定                   |
-| `update:current`     | `current`         | 步骤双向绑定                   |
-| `change`             | `values`          | 任意字段变化                   |
-| `values-change`      | `changed, values` | `changed` 含 `path` 与 `value` |
-| `submit` / `finish`  | `values`          | 校验与 transform 后的结果      |
-| `reset`              | `values`          | 恢复初始化快照                 |
-| `open` / `close`     | 无                | 组件方法或弹层交互             |
-| `current-change`     | `current`         | 当前步骤变化                   |
-| `request-error`      | `error`           | 异步初始值失败                 |
-| `error`              | `error`           | 初始化或校验失败               |
-
-## 组件 ref
+### 组件实例
 
 ```ts
 const formRef = ref<SchemaFormInstance<Brief>>()

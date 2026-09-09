@@ -346,9 +346,9 @@ var isFocusable = function isFocusable(node, options) {
 	return isNodeMatchingSelectorFocusable(options, node);
 };
 //#endregion
-//#region ../../node_modules/.pnpm/focus-trap@7.8.0/node_modules/focus-trap/dist/focus-trap.esm.js
+//#region ../../node_modules/.pnpm/focus-trap@8.2.2/node_modules/focus-trap/dist/focus-trap.esm.js
 /*!
-* focus-trap 7.8.0
+* focus-trap 8.2.2
 * @license MIT, https://github.com/focus-trap/focus-trap/blob/master/LICENSE
 */
 function _arrayLikeToArray(r, a) {
@@ -529,6 +529,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 		returnFocusOnDeactivate: true,
 		escapeDeactivates: true,
 		delayInitialFocus: true,
+		delayReturnFocus: true,
 		isolateSubtrees: false,
 		isKeyForward,
 		isKeyBackward
@@ -633,11 +634,26 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 		}
 		return node;
 	};
+	/**
+	* Gets the current activeElement. If it's a web-component and has open shadow-root
+	* it will recursively search inside shadow roots for the "true" activeElement.
+	*
+	* @param {Document | ShadowRoot} el
+	*
+	* @returns {HTMLElement|null} The element that currently has the focus. `null` if a focused element isn't found.
+	**/
+	var _getActiveElement = function getActiveElement(el) {
+		var activeElement = el.activeElement;
+		if (!activeElement) return null;
+		if (activeElement.shadowRoot && activeElement.shadowRoot.activeElement !== null) return _getActiveElement(activeElement.shadowRoot);
+		return activeElement;
+	};
 	var getInitialFocusNode = function getInitialFocusNode() {
 		var node = getNodeForOption("initialFocus", { hasFallback: true });
 		if (node === false) return false;
 		if (node === void 0 || node && !isFocusable(node, config.tabbableOptions)) {
-			if (findContainerIndex(doc.activeElement) >= 0) node = doc.activeElement;
+			var activeElement = _getActiveElement(doc);
+			if (findContainerIndex(activeElement) >= 0) node = activeElement;
 			else {
 				var firstTabbableGroup = state.tabbableGroups[0];
 				node = firstTabbableGroup && firstTabbableGroup.firstTabbableNode || getNodeForOption("fallbackFocus");
@@ -704,20 +720,6 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 		if (state.containerGroups.find(function(g) {
 			return g.posTabIndexesFound;
 		}) && state.containerGroups.length > 1) throw new Error("At least one node with a positive tabindex was found in one of your focus-trap's multiple containers. Positive tabindexes are only supported in single-container focus-traps.");
-	};
-	/**
-	* Gets the current activeElement. If it's a web-component and has open shadow-root
-	* it will recursively search inside shadow roots for the "true" activeElement.
-	*
-	* @param {Document | ShadowRoot} el
-	*
-	* @returns {HTMLElement} The element that currently has the focus
-	**/
-	var _getActiveElement = function getActiveElement(el) {
-		var activeElement = el.activeElement;
-		if (!activeElement) return;
-		if (activeElement.shadowRoot && activeElement.shadowRoot.activeElement !== null) return _getActiveElement(activeElement.shadowRoot);
-		return activeElement;
 	};
 	var _tryFocus = function tryFocus(node) {
 		if (node === false) return;
@@ -863,12 +865,25 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 		e.preventDefault();
 		e.stopImmediatePropagation();
 	};
+	/**
+	* Adds listeners to the document necessary for trapping focus and attempts to set focus
+	*  to the configured initial focus node. Does nothing if the trap isn't active.
+	* @returns {Promise<void> | undefined} A promise resolved once the initial focus node has
+	*  been focused when `delayInitialFocus=true`; `undefined` when focus is set synchronously
+	*  or the trap isn't active.
+	*/
 	var addListeners = function addListeners() {
 		if (!state.active) return;
 		activeFocusTraps.activateTrap(trapStack, trap);
-		state.delayInitialFocusTimer = config.delayInitialFocus ? delay(function() {
-			_tryFocus(getInitialFocusNode());
-		}) : _tryFocus(getInitialFocusNode());
+		/** @type {Promise<void> | undefined} */
+		var promise;
+		if (config.delayInitialFocus) promise = new Promise(function(resolve) {
+			state.delayInitialFocusTimer = delay(function() {
+				_tryFocus(getInitialFocusNode());
+				resolve();
+			});
+		});
+		else _tryFocus(getInitialFocusNode());
 		doc.addEventListener("focusin", checkFocusIn, true);
 		doc.addEventListener("mousedown", checkPointerDown, {
 			capture: true,
@@ -887,7 +902,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 			passive: false
 		});
 		doc.addEventListener("keydown", checkEscapeKey);
-		return trap;
+		return promise;
 	};
 	/**
 	* Traverses up the DOM from each of `containers`, collecting references to
@@ -952,11 +967,18 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 		return trap;
 	};
 	var mutationObserver = typeof window !== "undefined" && "MutationObserver" in window ? new MutationObserver(function checkDomRemoval(mutations) {
+		var focusedNode = state.mostRecentlyFocusedNode;
+		if (!focusedNode) return;
 		if (mutations.some(function(mutation) {
 			return Array.from(mutation.removedNodes).some(function(node) {
-				return node === state.mostRecentlyFocusedNode;
+				return node === focusedNode || typeof node.contains === "function" && node.contains(focusedNode);
 			});
-		})) _tryFocus(getInitialFocusNode());
+		}) && state.containers.some(function(container) {
+			return container === null || container === void 0 ? void 0 : container.isConnected;
+		})) {
+			updateTabbableNodes();
+			_tryFocus(getInitialFocusNode());
+		}
 	}) : void 0;
 	var updateObservedNodes = function updateObservedNodes() {
 		if (!mutationObserver) return;
@@ -992,13 +1014,17 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 				state.active = true;
 				state.paused = false;
 				state.nodeFocusedBeforeActivation = _getActiveElement(doc);
-				onActivate === null || onActivate === void 0 || onActivate();
+				onActivate === null || onActivate === void 0 || onActivate({ trap });
 				var finishActivation = function finishActivation() {
 					if (checkCanFocusTrap) updateTabbableNodes();
-					addListeners();
-					updateObservedNodes();
-					if (config.isolateSubtrees) trap._setSubtreeIsolation(true);
-					onPostActivate === null || onPostActivate === void 0 || onPostActivate();
+					var afterListeners = function afterListeners() {
+						trap._setSubtreeIsolation(true);
+						updateObservedNodes();
+						onPostActivate === null || onPostActivate === void 0 || onPostActivate({ trap });
+					};
+					var listenersPromise = addListeners();
+					if (listenersPromise) listenersPromise.then(afterListeners);
+					else afterListeners();
 				};
 				if (checkCanFocusTrap) {
 					checkCanFocusTrap(state.containers.concat()).then(finishActivation, finishActivation);
@@ -1033,13 +1059,16 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 			var onDeactivate = getOption(options, "onDeactivate");
 			var onPostDeactivate = getOption(options, "onPostDeactivate");
 			var checkCanReturnFocus = getOption(options, "checkCanReturnFocus");
+			var delayReturnFocus = getOption(options, "delayReturnFocus");
 			var returnFocus = getOption(options, "returnFocus", "returnFocusOnDeactivate");
-			onDeactivate === null || onDeactivate === void 0 || onDeactivate();
+			onDeactivate === null || onDeactivate === void 0 || onDeactivate({ trap });
+			var completeDeactivation = function completeDeactivation() {
+				if (returnFocus) _tryFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation));
+				onPostDeactivate === null || onPostDeactivate === void 0 || onPostDeactivate({ trap });
+			};
 			var finishDeactivation = function finishDeactivation() {
-				delay(function() {
-					if (returnFocus) _tryFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation));
-					onPostDeactivate === null || onPostDeactivate === void 0 || onPostDeactivate();
-				});
+				if (delayReturnFocus && returnFocus) delay(completeDeactivation);
+				else completeDeactivation();
 			};
 			if (returnFocus && checkCanReturnFocus) {
 				checkCanReturnFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation)).then(finishDeactivation, finishDeactivation);
@@ -1066,7 +1095,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 			if (config.isolateSubtrees) collectAdjacentElements(state.containers);
 			if (state.active) {
 				updateTabbableNodes();
-				if (config.isolateSubtrees && !state.paused) trap._setSubtreeIsolation(true);
+				if (!state.paused) trap._setSubtreeIsolation(true);
 			}
 			updateObservedNodes();
 			return this;
@@ -1082,20 +1111,26 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 			if (paused) {
 				var onPause = getOption(options, "onPause");
 				var onPostPause = getOption(options, "onPostPause");
-				onPause === null || onPause === void 0 || onPause();
+				onPause === null || onPause === void 0 || onPause({ trap });
 				removeListeners();
-				updateObservedNodes();
 				trap._setSubtreeIsolation(false);
-				onPostPause === null || onPostPause === void 0 || onPostPause();
+				updateObservedNodes();
+				onPostPause === null || onPostPause === void 0 || onPostPause({ trap });
 			} else {
 				var onUnpause = getOption(options, "onUnpause");
 				var onPostUnpause = getOption(options, "onPostUnpause");
-				onUnpause === null || onUnpause === void 0 || onUnpause();
-				trap._setSubtreeIsolation(true);
-				updateTabbableNodes();
-				addListeners();
-				updateObservedNodes();
-				onPostUnpause === null || onPostUnpause === void 0 || onPostUnpause();
+				onUnpause === null || onUnpause === void 0 || onUnpause({ trap });
+				(function finishUnpause() {
+					updateTabbableNodes();
+					var afterListeners = function afterListeners() {
+						trap._setSubtreeIsolation(true);
+						updateObservedNodes();
+						onPostUnpause === null || onPostUnpause === void 0 || onPostUnpause({ trap });
+					};
+					var listenersPromise = addListeners();
+					if (listenersPromise) listenersPromise.then(afterListeners);
+					else afterListeners();
+				})();
 			}
 			return this;
 		} },
@@ -1125,7 +1160,12 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
 	return trap;
 };
 //#endregion
-//#region ../../node_modules/.pnpm/@vueuse+integrations@12.8.2_48c60e9e21dcbeea3abc1a6110c09221/node_modules/@vueuse/integrations/useFocusTrap.mjs
+//#region ../../node_modules/.pnpm/@vueuse+integrations@14.4.0_2ddecc79cd8839f857e574c9626941f7/node_modules/@vueuse/integrations/dist/useFocusTrap.js
+/**
+* Reactive focus-trap
+*
+* @see https://vueuse.org/useFocusTrap
+*/
 function useFocusTrap(target, options = {}) {
 	let trap;
 	const { immediate, ...focusTrapOptions } = options;
@@ -1145,27 +1185,31 @@ function useFocusTrap(target, options = {}) {
 			isPaused.value = false;
 		}
 	};
-	const targets = computed(() => {
-		const _targets = toValue(target);
-		return toArray(_targets).map((el) => {
+	watch(computed(() => {
+		return toArray(toValue(target)).map((el) => {
 			const _el = toValue(el);
 			return typeof _el === "string" ? _el : unrefElement(_el);
 		}).filter(notNullish);
-	});
-	watch(targets, (els) => {
+	}), (els) => {
 		if (!els.length) return;
-		trap = createFocusTrap(els, {
-			...focusTrapOptions,
-			onActivate() {
-				hasFocus.value = true;
-				if (options.onActivate) options.onActivate();
-			},
-			onDeactivate() {
-				hasFocus.value = false;
-				if (options.onDeactivate) options.onDeactivate();
-			}
-		});
-		if (immediate) activate();
+		if (!trap) {
+			trap = createFocusTrap(els, {
+				...focusTrapOptions,
+				onActivate(params) {
+					hasFocus.value = true;
+					if (options.onActivate) options.onActivate(params);
+				},
+				onDeactivate(params) {
+					hasFocus.value = false;
+					if (options.onDeactivate) options.onDeactivate(params);
+				}
+			});
+			if (immediate) activate();
+		} else {
+			const isActive = trap === null || trap === void 0 ? void 0 : trap.active;
+			trap === null || trap === void 0 || trap.updateContainerElements(els);
+			if (!isActive && immediate) activate();
+		}
 	}, { flush: "post" });
 	tryOnScopeDispose(() => deactivate());
 	return {

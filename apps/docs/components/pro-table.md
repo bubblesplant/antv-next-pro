@@ -1,3 +1,7 @@
+---
+pageClass: component-doc
+---
+
 <script setup>
 import ProTableDemo from '../examples/ProTableDemo.vue'
 </script>
@@ -6,11 +10,26 @@ import ProTableDemo from '../examples/ProTableDemo.vue'
 
 `ProTable` 面向查询和浏览场景，统一管理本地/远程数据、搜索、分页、排序、筛选、列状态、选择和行编辑。
 
+## 何时使用
+
+当页面需要围绕表格统一组织查询、数据加载、分页、列设置、选择或行编辑时使用。
+
+## 示例
+
+### 综合示例
+
 <ClientOnly>
   <ProTableDemo />
 </ClientOnly>
 
-## 数据模式
+<details class="demo-source">
+<summary>查看完整代码</summary>
+
+<<< ../examples/ProTableDemo.vue
+
+</details>
+
+### 数据模式
 
 本地模式传入 `dataSource` 或 `defaultDataSource`。搜索、排序、筛选和分页会直接作用于本地数据：
 
@@ -42,7 +61,7 @@ const request: ProRequest<User, Query> = async (params, sort, filter) => {
 
 `manualRequest` 可阻止首次自动请求，之后通过组件 ref 的 `reload()` 发起。`postData` 在展示前同步转换成功数据。
 
-## 搜索区与折叠
+### 搜索区与折叠
 
 `search: false` 关闭查询区。默认情况下，包含 `dataIndex` 且没有 `hideInSearch` / `search: false` 的列会生成搜索项；`search.transform` 可将一个字段转换为多个请求参数。
 
@@ -76,32 +95,7 @@ const columns = [
 
 `span` 默认是 `8`，即 24 栅格下一行 3 项；折叠时仅保留首行。也可通过 `search.onCollapse(next)` 接收状态变化。
 
-## 主要 Props
-
-| Prop                           | 类型                                      | 说明                                     |
-| ------------------------------ | ----------------------------------------- | ---------------------------------------- |
-| `columns`                      | `ProColumns<T>[]`                         | 表格、搜索和编辑的统一列描述             |
-| `dataSource`                   | `T[]`                                     | 受控本地数据，支持 `v-model:data-source` |
-| `defaultDataSource`            | `T[]`                                     | 非受控初始数据                           |
-| `request`                      | `ProRequest<T, P>`                        | 远程 Promise 请求                        |
-| `params`                       | `P`                                       | 额外请求参数，变化时回到第一页并重载     |
-| `postData`                     | `(data: T[]) => T[]`                      | 展示前同步转换                           |
-| `rowKey`                       | `keyof T \| string \| (record) => ProKey` | 行唯一标识，默认 `id`                    |
-| `loading`                      | `boolean`                                 | 叠加外部 loading                         |
-| `search`                       | `false \| ProTableSearchConfig`           | 搜索区和折叠配置                         |
-| `pagination`                   | `false \| ProTablePagination`             | 分页、页大小和选项                       |
-| `options`                      | `false \| ProTableOptions`                | 密度、全屏、刷新和列设置                 |
-| `toolbar`                      | `false \| { title?, actions? }`           | 工具栏内容，也可使用插槽                 |
-| `rowSelection`                 | `false \| Record<string, unknown>`        | Antdv Next 行选择配置                    |
-| `columnsState`                 | `ProColumnsStateConfig`                   | 列显隐、顺序、固定和持久化配置           |
-| `editable`                     | `false \| EditableConfig<T>`              | 单行/多行编辑与生命周期                  |
-| `editableKeys`                 | `ProKey[]`                                | 编辑行 key，支持 `v-model:editable-keys` |
-| `polling`                      | `number`                                  | 轮询间隔（毫秒），页面隐藏时暂停         |
-| `revalidateOnFocus`            | `boolean`                                 | 窗口重新聚焦时请求                       |
-| `manualRequest`                | `boolean`                                 | 不执行首次自动请求                       |
-| `scroll` / `size` / `bordered` | Antdv Next 对应值                         | 滚动、密度和边框                         |
-
-## 列状态与列设置
+### 列状态与列设置
 
 工具栏中的内建列设置面板只提供列显隐开关。列顺序和固定位置由 `columnsState` 中每个列 key（优先使用列 `key`，否则使用 `dataIndex`）对应的 `order`、`fixed` 编程控制：
 
@@ -128,7 +122,7 @@ const tableColumnsState = computed<ProColumnsStateConfig>(() => ({
 
 完全受控时将 `value` 与 `onChange` 配对；非受控初值使用 `defaultValue`。设置 `persistenceKey` 后，状态可写入 `localStorage` 或 `sessionStorage`，包括面板产生的 `show` 变化以及编程设置的 `order`、`fixed`。
 
-## ProTable 内建编辑
+### ProTable 内建编辑
 
 `ProTable` 自身即可使用与 `EditableProTable` 相同的编辑状态机：
 
@@ -152,7 +146,49 @@ const tableColumnsState = computed<ProColumnsStateConfig>(() => ({
 
 `addEditRecord(record, { position, parentKey, newRecordType })` 支持顶部/底部创建、树形 `parentKey` 以及 cache/dataSource 两种新记录策略。新记录必须具有唯一 `rowKey`。
 
-## 命名插槽
+## API
+
+### 属性
+
+| Prop                           | 类型                                      | 说明                                     |
+| ------------------------------ | ----------------------------------------- | ---------------------------------------- |
+| `columns`                      | `ProColumns<T>[]`                         | 表格、搜索和编辑的统一列描述             |
+| `dataSource`                   | `T[]`                                     | 受控本地数据，支持 `v-model:data-source` |
+| `defaultDataSource`            | `T[]`                                     | 非受控初始数据                           |
+| `request`                      | `ProRequest<T, P>`                        | 远程 Promise 请求                        |
+| `params`                       | `P`                                       | 额外请求参数，变化时回到第一页并重载     |
+| `postData`                     | `(data: T[]) => T[]`                      | 展示前同步转换                           |
+| `rowKey`                       | `keyof T \| string \| (record) => ProKey` | 行唯一标识，默认 `id`                    |
+| `loading`                      | `boolean`                                 | 叠加外部 loading                         |
+| `search`                       | `false \| ProTableSearchConfig`           | 搜索区和折叠配置                         |
+| `pagination`                   | `false \| ProTablePagination`             | 分页、页大小和选项                       |
+| `options`                      | `false \| ProTableOptions`                | 密度、全屏、刷新和列设置                 |
+| `toolbar`                      | `false \| { title?, actions? }`           | 工具栏内容，也可使用插槽                 |
+| `rowSelection`                 | `false \| Record<string, unknown>`        | Antdv Next 行选择配置                    |
+| `columnsState`                 | `ProColumnsStateConfig`                   | 列显隐、顺序、固定和持久化配置           |
+| `editable`                     | `false \| EditableConfig<T>`              | 单行/多行编辑与生命周期                  |
+| `editableKeys`                 | `ProKey[]`                                | 编辑行 key，支持 `v-model:editable-keys` |
+| `polling`                      | `number`                                  | 轮询间隔（毫秒），页面隐藏时暂停         |
+| `revalidateOnFocus`            | `boolean`                                 | 窗口重新聚焦时请求                       |
+| `manualRequest`                | `boolean`                                 | 不执行首次自动请求                       |
+| `scroll` / `size` / `bordered` | Antdv Next 对应值                         | 滚动、密度和边框                         |
+
+### 事件
+
+| 事件                   | 参数                          | 说明                         |
+| ---------------------- | ----------------------------- | ---------------------------- |
+| `update:data-source`   | `rows`                        | `v-model:data-source` 更新   |
+| `update:editable-keys` | `keys`                        | `v-model:editable-keys` 更新 |
+| `data-source-change`   | `rows, changedRecord?`        | 编辑、新增或删除导致数据变化 |
+| `request-error`        | `error`                       | 远程请求失败                 |
+| `editable-error`       | `error`                       | 保存/删除生命周期抛错        |
+| `validation-error`     | `key, errors`                 | 行编辑校验失败               |
+| `search-collapse`      | `collapsed`                   | 搜索区折叠状态变化           |
+| `change`               | `pagination, filters, sorter` | 分页、筛选或排序变化         |
+| `selection-change`     | `keys, rows`                  | 行选择变化                   |
+| `load`                 | `rows, total`                 | 成功接纳远程结果             |
+
+### 插槽
 
 列 key 取 `column.key`，否则取点连接后的 `dataIndex`。
 
@@ -178,22 +214,7 @@ const tableColumnsState = computed<ProColumnsStateConfig>(() => ({
 
 单元格插槽优先于默认只读展示和编辑器；需要行内编辑的列通常只自定义表头，或在插槽中自行处理编辑态。
 
-## 双向绑定与事件
-
-| 事件                   | 参数                          | 说明                         |
-| ---------------------- | ----------------------------- | ---------------------------- |
-| `update:data-source`   | `rows`                        | `v-model:data-source` 更新   |
-| `update:editable-keys` | `keys`                        | `v-model:editable-keys` 更新 |
-| `data-source-change`   | `rows, changedRecord?`        | 编辑、新增或删除导致数据变化 |
-| `request-error`        | `error`                       | 远程请求失败                 |
-| `editable-error`       | `error`                       | 保存/删除生命周期抛错        |
-| `validation-error`     | `key, errors`                 | 行编辑校验失败               |
-| `search-collapse`      | `collapsed`                   | 搜索区折叠状态变化           |
-| `change`               | `pagination, filters, sorter` | 分页、筛选或排序变化         |
-| `selection-change`     | `keys, rows`                  | 行选择变化                   |
-| `load`                 | `rows, total`                 | 成功接纳远程结果             |
-
-## 组件 ref
+### 组件实例
 
 ```ts
 import type { ProTableInstance } from 'antdv-next-pro'

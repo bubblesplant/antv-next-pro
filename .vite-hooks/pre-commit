@@ -1,1 +1,1 @@
-vp staged
+node .vite-hooks/run.mjs staged

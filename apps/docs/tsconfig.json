@@ -6,5 +6,10 @@
     },
     "types": ["node", "vite/client"]
   },
-  "include": [".vitepress/**/*.ts", ".vitepress/**/*.mts", "examples/**/*.vue"]
+  "include": [
+    ".vitepress/**/*.ts",
+    ".vitepress/**/*.mts",
+    ".vitepress/**/*.vue",
+    "examples/**/*.vue"
+  ]
 }

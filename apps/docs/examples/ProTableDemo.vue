@@ -100,7 +100,7 @@ const reload = async () => {
 </script>
 
 <template>
-  <div class="demo-frame">
+  <div class="demo-frame vp-raw">
     <p class="demo-label">LIVE · REQUEST + EDITABLE + SLOTS</p>
     <div class="demo-actions">
       <span>{{ lastAction }}</span>
@@ -125,7 +125,6 @@ const reload = async () => {
       <template #toolbar-actions>
         <button class="slot-button" type="button" @click="reload">ref 刷新</button>
       </template>
-      <template #header-name="{ column }"> {{ column.title }}（命名插槽） </template>
       <template #cell-status="{ value }">
         <span :class="['status-chip', `is-${value}`]">
           {{ value === 'running' ? '进行中' : '已完成' }}

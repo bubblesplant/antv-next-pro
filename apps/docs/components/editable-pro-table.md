@@ -1,3 +1,7 @@
+---
+pageClass: component-doc
+---
+
 <script setup>
 import EditableProTableDemo from '../examples/EditableProTableDemo.vue'
 </script>
@@ -6,11 +10,28 @@ import EditableProTableDemo from '../examples/EditableProTableDemo.vue'
 
 `EditableProTable` 复用 `ProTable` 的列模型、编辑状态机和校验逻辑，面向“整张表就是一个表单字段”的场景。它默认关闭搜索、分页、工具选项和窗口聚焦刷新。
 
+## 何时使用
+
+- 需要在表格中连续新增、修改或删除多条记录，并把整张表作为一个受控值提交。
+- 需要复用 `ProTable` 的列配置、校验和插槽，同时默认关闭查询、分页等浏览型能力。
+- 只编辑单条记录、且仍以查询浏览为主时，可以直接使用 `ProTable` 的内建编辑能力。
+
+## 示例
+
+### 受控编辑、新建记录与组件实例
+
 <ClientOnly>
   <EditableProTableDemo />
 </ClientOnly>
 
-## 受控数据与编辑状态
+<details class="demo-source">
+  <summary>查看完整代码</summary>
+
+<<< ../examples/EditableProTableDemo.vue
+
+</details>
+
+### 受控数据与编辑状态
 
 `v-model:value` 是完整数据的唯一受控入口，不再提供语义冲突的 `dataSource`。`defaultValue` 可提供非受控初始值。
 
@@ -27,7 +48,7 @@ import EditableProTableDemo from '../examples/EditableProTableDemo.vue'
 
 `editable.type` 可设为 `single` 或 `multiple`。`onSave`、`onCancel`、`onDelete` 支持 Promise；保存或删除返回 `false` 时保持当前编辑/数据状态。列级 `editable` 可根据记录决定是否允许编辑。
 
-## 校验与生命周期
+### 校验与生命周期
 
 校验规则放在列的 `formItemProps.rules`：
 
@@ -57,7 +78,7 @@ const editable: EditableConfig<Member> = {
 
 校验不通过时 `saveEditable` 返回 `false`；生命周期抛错会触发 `editable-error`。`formItemProps` Prop 则用于将整个 EditableProTable 包装为一个 Antdv Next FormItem，方便嵌入外层表单。
 
-## 新建记录
+### 新建记录
 
 ```ts
 const recordCreatorProps: RecordCreatorProps<Member> = {
@@ -82,7 +103,9 @@ const recordCreatorProps: RecordCreatorProps<Member> = {
 
 每条新记录必须产生唯一 `rowKey`。`maxLength` 按展开后的树形记录总数计算；达到上限后隐藏创建按钮，通过 ref 调用 `addEditRecord` 时也会遵守该限制。
 
-## 主要 Props
+## API
+
+### 属性
 
 | Prop                                        | 类型                                    | 说明                          |
 | ------------------------------------------- | --------------------------------------- | ----------------------------- |
@@ -100,7 +123,7 @@ const recordCreatorProps: RecordCreatorProps<Member> = {
 | `polling` / `manualRequest`                 | 与 ProTable 相同                        | 远程请求控制                  |
 | `scroll` / `size` / `bordered`              | 与 ProTable 相同                        | 表格外观                      |
 
-## Props 回调与 Vue 事件
+### 事件
 
 `onValuesChange` / `onTableChange` Props 与 `@values-change` / `@table-change` 是同一条 Vue 监听通道的两种写法，请任选一种。每次变化只派发一次，不要为同一个处理函数同时写两种语法：
 
@@ -113,7 +136,7 @@ const recordCreatorProps: RecordCreatorProps<Member> = {
 | `request-error`        | `error`                       | 远程请求失败                 |
 | `editable-error`       | `error`                       | 编辑生命周期失败             |
 
-## 插槽
+### 插槽
 
 EditableProTable 会将插槽全部转发给内部 ProTable，因此可以使用：
 
@@ -122,7 +145,7 @@ EditableProTable 会将插槽全部转发给内部 ProTable，因此可以使用
 - `cell-${columnKey}` 或 `${columnKey}`，参数为 `{ value, record, index, column, editable }`。
 - 底层 Antdv Next Table 的其他插槽。
 
-## 组件 ref
+### 组件实例
 
 `EditableProTableInstance<T>` 包含 ProTable 的全部实例方法，并额外提供整表读写：
 

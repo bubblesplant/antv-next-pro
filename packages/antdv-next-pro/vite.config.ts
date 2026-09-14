@@ -17,7 +17,14 @@ export default defineConfig({
   },
   test: {
     coverage: {
-      include: ['src/table/**/*.ts', 'src/schema-form/utils.ts'],
+      include: [
+        'src/table/**/*.ts',
+        'src/schema-form/utils.ts',
+        'src/pro-form-fields/**/*.ts',
+        'src/pro-form-fields/FieldControl.vue',
+        'src/pro-form-fields/ProFormField.vue',
+        'src/pro-form-fields/ReadonlyField.vue',
+      ],
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary'],
       thresholds: {

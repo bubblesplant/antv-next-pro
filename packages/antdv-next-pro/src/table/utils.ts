@@ -73,14 +73,25 @@ export function flattenColumns<T extends Record<string, unknown>>(
   )
 }
 
-export function getValueEnumOptions(valueEnum?: ProValueEnum | (() => ProValueEnum)): Array<{
+export function getValueEnumOptions<Value = unknown>(
+  valueEnum?: ProValueEnum<Value> | (() => ProValueEnum<Value>),
+): Array<{
   label: string
-  value: ProKey
+  value: Value | string
   disabled?: boolean
 }> {
   if (!valueEnum) return []
   const resolved = typeof valueEnum === 'function' ? valueEnum() : valueEnum
-  return Object.entries(resolved).map(([value, item]) => {
+
+  const entries =
+    resolved instanceof Map
+      ? Array.from(resolved.entries())
+      : Object.entries(resolved).map(([key, item]) => {
+          const value = typeof item === 'string' ? key : (item.value ?? key)
+          return [value, item] as const
+        })
+
+  return entries.map(([value, item]) => {
     const normalized = normalizeValueEnumItem(item)
     return {
       label: normalized.text,
@@ -90,14 +101,28 @@ export function getValueEnumOptions(valueEnum?: ProValueEnum | (() => ProValueEn
   })
 }
 
-export function getValueEnumItem(
-  valueEnum: ProValueEnum | (() => ProValueEnum) | undefined,
+export function getValueEnumItem<Value = unknown>(
+  valueEnum: ProValueEnum<Value> | (() => ProValueEnum<Value>) | undefined,
   value: unknown,
-): ProValueEnumItem | undefined {
-  if (!valueEnum || (typeof value !== 'string' && typeof value !== 'number')) return undefined
+): ProValueEnumItem<Value> | undefined {
+  if (!valueEnum) return undefined
   const resolved = typeof valueEnum === 'function' ? valueEnum() : valueEnum
-  const item = resolved[value]
-  return item === undefined ? undefined : normalizeValueEnumItem(item)
+
+  if (resolved instanceof Map) {
+    const exactItem = resolved.get(value as Value)
+    if (exactItem !== undefined) return normalizeValueEnumItem(exactItem)
+
+    const compatibleEntry = Array.from(resolved.entries()).find(([entryValue]) =>
+      hasCompatibleValue(entryValue, value),
+    )
+    return compatibleEntry ? normalizeValueEnumItem(compatibleEntry[1]) : undefined
+  }
+
+  const compatibleEntry = Object.entries(resolved).find(([key, item]) => {
+    const itemValue = typeof item === 'string' ? key : (item.value ?? key)
+    return Object.is(itemValue, value) || hasCompatibleValue(itemValue, value)
+  })
+  return compatibleEntry ? normalizeValueEnumItem(compatibleEntry[1]) : undefined
 }
 
 export function buildSearchParams<T extends Record<string, unknown>>(
@@ -286,8 +311,20 @@ export function insertRecord<T extends Record<string, unknown>>(
   return { rows: nextRows, inserted }
 }
 
-function normalizeValueEnumItem(item: string | ProValueEnumItem): ProValueEnumItem {
+function normalizeValueEnumItem<Value>(
+  item: string | ProValueEnumItem<Value>,
+): ProValueEnumItem<Value> {
   return typeof item === 'string' ? { text: item } : item
+}
+
+function hasCompatibleValue(left: unknown, right: unknown): boolean {
+  if (
+    (typeof left !== 'string' && typeof left !== 'number') ||
+    (typeof right !== 'string' && typeof right !== 'number')
+  ) {
+    return false
+  }
+  return String(left) === String(right)
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

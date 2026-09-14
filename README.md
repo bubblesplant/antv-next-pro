@@ -9,6 +9,7 @@
 - `ProTable`：搜索、分页、排序、筛选、列设置、远程请求与可编辑行。
 - `EditableProTable`：整表受控编辑、新建记录、单行/多行编辑与异步保存。
 - `SchemaForm`：通过 `columns` 生成普通、查询、轻量、弹层和步骤表单。
+- `ProFormFields`：19 个可独立使用的字段组件，统一 FormItem/裸控件、异步选项、只读展示与 `v-model` 协议，覆盖文本、数字、日期、选择、验证码和上传等场景。
 
 [中文文档](https://bubblesplant.github.io/antv-next-pro/) · [English docs](https://bubblesplant.github.io/antv-next-pro/en/)
 
@@ -32,8 +33,27 @@ createApp(App).use(Antd).use(AntdvNextPro).mount('#app')
 也可以按需具名导入：
 
 ```ts
-import { EditableProTable, ProTable, SchemaForm, type ProColumns } from 'antdv-next-pro'
+import {
+  EditableProTable,
+  ProFormSelect,
+  ProFormText,
+  ProFormUploadButton,
+  ProTable,
+  SchemaForm,
+  type ProColumns,
+} from 'antdv-next-pro'
 ```
+
+ProFormFields 默认包含 FormItem，设置 `fieldMode="field"` 可只渲染裸控件。完整 19 项导出、组合命名和 Captcha/Upload 边界见 [ProFormFields 文档](https://bubblesplant.github.io/antv-next-pro/components/pro-form-fields)。
+
+19 个模板友好公开字段组件为：
+
+- 文本与数字：`ProFormText`、`ProFormTextPassword`、`ProFormTextArea`、`ProFormDigit`、`ProFormMoney`、`ProFormCaptcha`。
+- 日期时间：`ProFormDatePicker`、`ProFormDateTimePicker`、`ProFormDateRangePicker`、`ProFormDateTimeRangePicker`。
+- 选择与状态：`ProFormSelect`、`ProFormTreeSelect`、`ProFormCheckbox`、`ProFormRadioGroup`、`ProFormSlider`、`ProFormSwitch`、`ProFormSegmented`。
+- 上传：`ProFormUploadButton`、`ProFormUploadDragger`。
+
+`ProTable`、`SchemaForm` 与 `EditableProTable` 共享同一字段注册表和控件核心，查询、表单及行内编辑不会维护彼此分离的字段映射。
 
 ## 快速示例
 
@@ -83,7 +103,7 @@ request(params, sort, filter): Promise<{
 ```text
 apps/
   docs/                 中英双语 VitePress 文档
-  playground/           三个组件的交互演练场
+  playground/           核心组件与字段体系的交互演练场
 packages/
   antdv-next-pro/       npm 组件包
 ```

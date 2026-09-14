@@ -146,6 +146,18 @@ const tableColumnsState = computed<ProColumnsStateConfig>(() => ({
 
 `addEditRecord(record, { position, parentKey, newRecordType })` 支持顶部/底部创建、树形 `parentKey` 以及 cache/dataSource 两种新记录策略。新记录必须具有唯一 `rowKey`。
 
+### 共用字段核心
+
+搜索区、可编辑单元格和独立 [ProFormFields](/components/pro-form-fields) 使用同一字段注册表、选项请求和只读格式化逻辑：
+
+- 搜索项使用表单项模式，列级 `dataIndex` / `title` 生成的 `name` / `label` 会覆盖 `formItemProps` 中的同名值。
+- 可编辑单元格使用 `fieldMode="field"` 对应的裸控件能力，校验仍由列级 `formItemProps.rules` 执行，不会嵌套第二个 FormItem。
+- `select`、`treeSelect`、`radio`、`checkbox`、`segmented` 的异步选项只接纳最后一次请求；空远程结果有效，失败时调用 `onFieldRequestError(error)` 并保留现有选项。
+
+`valueType` 现支持 `treeSelect`、`slider`、`segmented`。Captcha 与两个 Upload 是独立 ProFormFields，不提供列 `valueType` 映射。
+
+需要完全自定义搜索项或编辑器时继续使用 `renderFormItem(column, context)`；需要自定义只读单元格时使用列插槽或 `render`。这些入口的优先级和 `context.update(value)` 协议不变。
+
 ## API
 
 ### 属性

@@ -55,15 +55,15 @@ Vue 同时触发 `search-collapse` 事件，可用受控方式书写：
 
 ## `valueType` 支持
 
-| 分类     | 类型                                                                  | ProTable / EditableProTable                       | SchemaForm                         |
-| -------- | --------------------------------------------------------------------- | ------------------------------------------------- | ---------------------------------- |
-| 文本     | `text`、`textarea`、`password`                                        | Input、Textarea、Password 搜索/编辑与格式化只读值 | Input、Textarea、Password          |
-| 数字     | `digit`、`money`、`percent`                                           | 数字搜索与行内 InputNumber                        | InputNumber 及金额/百分比装饰      |
-| 选项     | `select`、`radio`                                                     | 配合 `valueEnum` 的 Select / Radio 搜索和编辑     | Select、Radio                      |
-| 状态     | `checkbox`、`switch`                                                  | 行内 Checkbox / Switch                            | Checkbox(Group) / Switch           |
-| 日期时间 | `date`、`dateTime`、`dateRange`、`dateTimeRange`、`time`、`timeRange` | 对应日期/时间控件与格式化只读值                   | 日期/时间控件（`timeRange` 除外）  |
-| 表格     | `index`、`indexBorder`、`option`                                      | 序号与操作列                                      | 不生成字段                         |
-| 组合     | `group`、`formList`、`formSet`、`divider`、`dependency`               | 不生成数据列                                      | 分组、动态列表、集合、分隔线和联动 |
+| 分类     | 类型                                                                  | ProTable / EditableProTable                       | SchemaForm                            |
+| -------- | --------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------- |
+| 文本     | `text`、`textarea`、`password`                                        | Input、Textarea、Password 搜索/编辑与格式化只读值 | Input、Textarea、Password             |
+| 数字     | `digit`、`money`、`percent`、`slider`                                 | 数字搜索、行内 InputNumber / Slider               | InputNumber、Slider 及金额/百分比装饰 |
+| 选项     | `select`、`treeSelect`、`radio`、`segmented`                          | 配合 `valueEnum` 的选择类搜索和编辑               | Select、TreeSelect、Radio、Segmented  |
+| 状态     | `checkbox`、`switch`                                                  | 行内 Checkbox / Switch                            | Checkbox(Group) / Switch              |
+| 日期时间 | `date`、`dateTime`、`dateRange`、`dateTimeRange`、`time`、`timeRange` | 对应日期/时间控件与格式化只读值                   | 对应日期/时间控件                     |
+| 表格     | `index`、`indexBorder`、`option`                                      | 序号与操作列                                      | 不生成字段                            |
+| 组合     | `group`、`formList`、`formSet`、`divider`、`dependency`               | 不生成数据列                                      | 分组、动态列表、集合、分隔线和联动    |
 
 ## ProTable 能力
 
@@ -106,6 +106,21 @@ Vue 同时触发 `search-collapse` 事件，可用受控方式书写：
 
 `urlSync` 是 Vue 版本提供的扩展能力：`true` 将字段分别写入 query，`{ key: 'filters' }` 将完整模型 JSON 写入一个参数，`{ mode: 'hash' }` 改写 hash；浏览器前进/后退会回填表单。
 
+普通字段与 ProTable 搜索/编辑共用 ProFormFields 字段核心。SchemaForm 的自定义渲染优先级为字段插槽 → `renderFormItem` → `column.component` → 默认 `valueType` 控件；前三种扩展入口均保留。
+
+## ProFormFields 映射
+
+公开的 19 个独立字段使用模板友好的具名导出，例如 `ProFormText`、`ProFormSelect`、`ProFormTreeSelect`、`ProFormUploadButton`。默认 `fieldMode="form-item"` 会创建 FormItem；`fieldMode="field"` 只渲染裸控件，适合表格单元格或已有 FormItem 的布局。
+
+| React 组合命名         | Vue 模板推荐名称      | 关系             |
+| ---------------------- | --------------------- | ---------------- |
+| `ProFormText.Password` | `ProFormTextPassword` | 两者引用同一组件 |
+| `ProFormRadio.Group`   | `ProFormRadioGroup`   | 两者引用同一组件 |
+
+所有字段对外统一使用 `v-model`。公共字段核心会把单 Checkbox/Switch 的 `checked`、Upload 的 `fileList` 和其他控件的 `value` 协议桥接到 `modelValue`。Select、TreeSelect、Checkbox 组、RadioGroup、Segmented 共用 `options` / `valueEnum` / `request` 协议。
+
+Captcha 不读取手机号，也不会自行发送验证码；UploadButton 与 UploadDragger 不提供上传服务端。这三类组件不映射为 `valueType`，业务侧必须提供验证码回调以及上传 `action` / `customRequest` 等后端契约。
+
 ## 组件 ref 对照
 
 | 组件             | 方法                                                                                                                                            |
@@ -113,6 +128,18 @@ Vue 同时触发 `search-collapse` 事件，可用受控方式书写：
 | ProTable         | `reload`、`reset`、`setPageInfo`、`clearSelected`、`fullScreen`、`scrollTo`、`startEditable`、`saveEditable`、`cancelEditable`、`addEditRecord` |
 | EditableProTable | ProTable 方法 + `getRowData`、`getRowsData`、`setRowData`                                                                                       |
 | SchemaForm       | `validate`、`reset`、`getFieldsValue`、`setFieldsValue`、`submit`、`open`、`close`、`next`、`prev`                                              |
+
+## 模板优先与 Vue Vapor 准备
+
+组件视图优先使用 Vue SFC 的 `<template>` 和 `<script setup lang="ts">`，条件、列表、动态组件及插槽转发使用模板语法，不用 JSX / TSX。SchemaForm 的普通字段、组合字段、动态列表和布局别名分别由模板组件承载；对标 pro-components 的职责和公开行为，不照搬 React 渲染实现。
+
+目前仅保留以下 VNode 兼容边界，并在源码中注明原因：
+
+- `shared/VNodeContent.ts`：挂载既有 `render`、标题等回调返回的任意 `VNodeChild`，包括节点数组。
+- `shared/DirectSlotRenderer.ts`：让 FormItem 直接接收自定义控件节点，以保持 id、ARIA、ref 注入和校验状态；同时保留 Divider 的空插槽语义。
+- `SchemaFormBody.vue`：`step-content` 的 `content()` 仍需同步返回 VNode；步骤标题数组需适配底层 Steps 的单节点接口。
+
+这次调整是迁移准备，**不表示已经支持 Vue Vapor**，也没有启用 Vapor 编译。后续需结合 Vue 与 `antdv-next` 的实际版本验证组件互操作、动态插槽、表单校验/ref、受控事件及上述 VNode 边界。新增可模板化的视图不应继续扩展这些兼容层。
 
 ## 项目发布约定
 

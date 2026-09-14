@@ -115,6 +115,22 @@ describe('table utilities', () => {
     expect(getValueEnumItem({ active: 'Active' }, 'active')).toEqual({ text: 'Active' })
     expect(getValueEnumItem(() => ({ active: { text: 'Active' } }), 'missing')).toBeUndefined()
     expect(getValueEnumItem({ active: 'Active' }, {})).toBeUndefined()
+
+    const numericMap = new Map<number, string | { text: string }>([
+      [1, 'One'],
+      [2, { text: 'Two' }],
+    ])
+    expect(getValueEnumOptions(numericMap).map((item) => item.value)).toEqual([1, 2])
+    expect(getValueEnumItem(numericMap, 2)).toEqual({ text: 'Two' })
+    expect(getValueEnumItem(numericMap, '1')).toEqual({ text: 'One' })
+    expect(getValueEnumOptions({ first: { text: 'First', value: 1 }, second: 'Second' })).toEqual([
+      { label: 'First', value: 1, disabled: undefined },
+      { label: 'Second', value: 'second', disabled: undefined },
+    ])
+    expect(getValueEnumItem({ first: { text: 'First', value: 1 } }, 1)).toEqual({
+      text: 'First',
+      value: 1,
+    })
   })
 
   it('applies local search, filters and sorting in a deterministic order', () => {

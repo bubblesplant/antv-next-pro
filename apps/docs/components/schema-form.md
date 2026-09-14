@@ -51,21 +51,22 @@ const loadInitialValues = async (params?: Record<string, unknown>) => {
 
 ### `valueType` 与异步选项
 
-| 类型                             | 生成控件/结构               |
-| -------------------------------- | --------------------------- |
-| `text` / `textarea` / `password` | Input / Textarea / Password |
-| `digit` / `money` / `percent`    | InputNumber                 |
-| `select` / `radio`               | Select / RadioGroup         |
-| `checkbox` / `switch`            | Checkbox(Group) / Switch    |
-| `date` / `dateTime`              | DatePicker                  |
-| `dateRange` / `dateTimeRange`    | DateRangePicker             |
-| `time`                           | TimePicker                  |
-| `group` / `formSet`              | 字段分组                    |
-| `formList`                       | 可新增、删除的动态列表      |
-| `divider`                        | 分隔线                      |
-| `dependency`                     | 依赖字段或自定义联动区域    |
+| 类型                              | 生成控件/结构                    |
+| --------------------------------- | -------------------------------- |
+| `text` / `textarea` / `password`  | Input / Textarea / Password      |
+| `digit` / `money` / `percent`     | InputNumber                      |
+| `select` / `treeSelect` / `radio` | Select / TreeSelect / RadioGroup |
+| `checkbox` / `switch`             | Checkbox(Group) / Switch         |
+| `slider` / `segmented`            | Slider / Segmented               |
+| `date` / `dateTime`               | DatePicker                       |
+| `dateRange` / `dateTimeRange`     | DateRangePicker                  |
+| `time` / `timeRange`              | TimePicker / TimeRangePicker     |
+| `group` / `formSet`               | 字段分组                         |
+| `formList`                        | 可新增、删除的动态列表           |
+| `divider`                         | 分隔线                           |
+| `dependency`                      | 依赖字段或自定义联动区域         |
 
-`select`、`radio` 和 `checkbox` 可使用 `valueEnum`、`fieldProps.options`，或列级异步 `request`：
+`select`、`treeSelect`、`radio`、`checkbox` 和 `segmented` 可使用 `valueEnum`、顶层/`fieldProps` 选项，或列级异步 `request`。TreeSelect 的底层选项属性为 `treeData`：
 
 ```ts
 const channelColumn: SchemaFormColumn<Brief> = {
@@ -85,6 +86,8 @@ const channelColumn: SchemaFormColumn<Brief> = {
 ```
 
 异步选项会在 `request` 或 `params` 变化时重载，并同样只接纳最后一次结果。
+
+SchemaForm、ProTable 搜索/编辑与[独立 ProFormFields](./pro-form-fields)共用同一字段注册表和控件核心，因此选项请求、只读展示与 `treeSelect`、`slider`、`segmented` 的行为保持一致。`timeRange` 也可直接生成时间区间控件。Captcha、UploadButton、UploadDragger 只提供独立组件，不映射为 `valueType`。
 
 ### 布局类型
 
@@ -144,6 +147,8 @@ const columns: SchemaFormColumn<Project>[] = [
 ```
 
 `columns` 可以是 computed 结果；依赖外部状态增删列即可生成动态字段。`dependencies` 会把依赖值传给字段插槽，`dependency` 搭配 `renderFormItem` 可渲染联动区域。
+
+普通字段的扩展优先级为：动态字段插槽（`field-${path}`、`${path}` 或列 `key`）→ `renderFormItem` → `column.component` → 默认 `valueType` 控件。`column.component` 仍由 SchemaForm 的 FormItem 包裹，并接收 `value`、`modelValue`、`disabled` 以及对应更新监听器；需要完全接管内容时使用字段插槽或 `renderFormItem`。
 
 ### 值转换
 

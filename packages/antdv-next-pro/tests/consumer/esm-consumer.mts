@@ -1,10 +1,31 @@
-import type { Plugin } from 'vue'
+import { h, type Component, type Plugin } from 'vue'
 
 import AntdvNextPro, {
   AntdvNextPro as NamedPlugin,
   EditableProTable,
   Form,
   ModalForm,
+  ProFormCaptcha,
+  ProFormCheckbox,
+  ProFormDatePicker,
+  ProFormDateRangePicker,
+  ProFormDateTimePicker,
+  ProFormDateTimeRangePicker,
+  ProFormDigit,
+  ProFormField,
+  ProFormMoney,
+  ProFormRadio,
+  ProFormRadioGroup,
+  ProFormSegmented,
+  ProFormSelect,
+  ProFormSlider,
+  ProFormSwitch,
+  ProFormText,
+  ProFormTextArea,
+  ProFormTextPassword,
+  ProFormTreeSelect,
+  ProFormUploadButton,
+  ProFormUploadDragger,
   ProTable,
   QueryFilter,
   SchemaForm,
@@ -12,6 +33,26 @@ import AntdvNextPro, {
   type EditableProTableInstance,
   type EditableProTableProps,
   type ProColumns,
+  type ProFormCaptchaProps,
+  type ProFormCheckboxProps,
+  type ProFormDatePickerProps,
+  type ProFormDateRangePickerProps,
+  type ProFormDateTimePickerProps,
+  type ProFormDateTimeRangePickerProps,
+  type ProFormDigitProps,
+  type ProFormFieldProps,
+  type ProFormMoneyProps,
+  type ProFormRadioGroupProps,
+  type ProFormSegmentedProps,
+  type ProFormSelectProps,
+  type ProFormSliderProps,
+  type ProFormSwitchProps,
+  type ProFormTextAreaProps,
+  type ProFormTextPasswordProps,
+  type ProFormTextProps,
+  type ProFormTreeSelectProps,
+  type ProFormUploadButtonProps,
+  type ProFormUploadDraggerProps,
   type ProTableInstance,
   type ProTableProps,
   type SchemaFormColumn,
@@ -154,6 +195,76 @@ const schemaFormSlots = {
   },
 } satisfies SchemaFormSlots<UserRow>
 
+const fieldComponents: Component[] = [
+  ProFormText,
+  ProFormDigit,
+  ProFormTextPassword,
+  ProFormTextArea,
+  ProFormCaptcha,
+  ProFormDatePicker,
+  ProFormDateTimePicker,
+  ProFormDateRangePicker,
+  ProFormDateTimeRangePicker,
+  ProFormSelect,
+  ProFormTreeSelect,
+  ProFormCheckbox,
+  ProFormRadioGroup,
+  ProFormSlider,
+  ProFormSwitch,
+  ProFormUploadButton,
+  ProFormUploadDragger,
+  ProFormMoney,
+  ProFormSegmented,
+]
+const passwordAlias: Component = ProFormText.Password
+const radioAlias: Component = ProFormRadio.Group
+
+const genericFieldProps = {
+  modelValue: 'active',
+  options: [{ label: 'Active', value: 'active' }],
+  params: { scope: 'users' },
+  request: async ({ scope } = { scope: 'users' }) => [{ label: scope, value: scope }],
+  fieldProps: { placeholder: 'Status' },
+  readonlyRender: (value) => value.toUpperCase(),
+} satisfies ProFormFieldProps<string, string, { placeholder?: string }, { scope: string }>
+
+const specializedFieldProps = [
+  { modelValue: 'Ada' } satisfies ProFormTextProps,
+  { modelValue: 'secret' } satisfies ProFormTextPasswordProps,
+  { modelValue: 'Biography' } satisfies ProFormTextAreaProps,
+  { modelValue: 12, precision: 2, min: 0 } satisfies ProFormDigitProps,
+  { modelValue: '12.00', prefix: '¥' } satisfies ProFormMoneyProps,
+  { readonly: true } satisfies ProFormDatePickerProps,
+  { showTime: true } satisfies ProFormDateTimePickerProps,
+  { readonly: true } satisfies ProFormDateRangePickerProps,
+  { showTime: true } satisfies ProFormDateTimeRangePickerProps,
+  {
+    modelValue: ['read'],
+    options: [{ label: 'Read', value: 'read' }],
+  } satisfies ProFormCheckboxProps<string[], string>,
+  {
+    modelValue: 1,
+    request: async () => [{ label: 'One', value: 1 }],
+  } satisfies ProFormRadioGroupProps<number, number>,
+  {
+    modelValue: ['admin'],
+    options: [{ label: 'Admin', value: 'admin' }],
+  } satisfies ProFormSelectProps<string[], string>,
+  {
+    modelValue: [2],
+    options: [{ label: 'Root', value: 1, children: [{ label: 'Child', value: 2 }] }],
+  } satisfies ProFormTreeSelectProps<number[], number>,
+  { modelValue: [10, 20], fieldProps: { range: true } } satisfies ProFormSliderProps,
+  { modelValue: false } satisfies ProFormSwitchProps,
+  {
+    modelValue: 'list',
+    options: [{ label: 'List', value: 'list' }],
+  } satisfies ProFormSegmentedProps<string, string>,
+  { modelValue: [] } satisfies ProFormUploadButtonProps,
+  { modelValue: [] } satisfies ProFormUploadDraggerProps,
+  { onGetCaptcha: async () => true, countDown: 60 } satisfies ProFormCaptchaProps,
+]
+
 const tableVNode = ProTable<UserRow, UserQuery>(tableProps)
 const editableVNode = EditableProTable<UserRow, UserQuery>(editableProps)
 const schemaFormVNode = SchemaForm<UserRow>(schemaFormProps)
@@ -164,6 +275,7 @@ const modalFormVNode = ModalForm<UserRow>({
   'onUpdate:open': (open: boolean) => void open,
 })
 const queryFilterVNode = QueryFilter<UserRow>(schemaFormProps)
+const proFormFieldVNode = h(ProFormField, genericFieldProps)
 
 declare const table: ProTableInstance<UserRow>
 declare const editableTable: EditableProTableInstance<UserRow>
@@ -184,4 +296,10 @@ void [
   queryFilterVNode,
   schemaFormSlots,
   editableAction,
+  fieldComponents,
+  passwordAlias,
+  radioAlias,
+  genericFieldProps,
+  specializedFieldProps,
+  proFormFieldVNode,
 ]

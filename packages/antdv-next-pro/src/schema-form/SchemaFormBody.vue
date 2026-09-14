@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import type { VNode, VNodeChild } from 'vue'
-import type { SchemaFormColumn, SchemaFormLayoutType, SchemaFormProps } from '../types'
+import type {
+  SchemaFormColumn,
+  SchemaFormLayoutType,
+  SchemaFormProps,
+  SchemaFormSlots,
+} from '../types'
 import type { FormRecord } from './utils'
 
-import { Button, Form, Row, Space, Spin, Steps } from 'antdv-next'
+import { Button, Form, Space, Spin, Steps } from 'antdv-next'
 import { computed, Fragment, h, isVNode, ref } from 'vue'
 
-import { SchemaFormField } from './SchemaFormField'
-import { buildSchemaSteps, normalizePath } from './utils'
+import VNodeContent from '../shared/VNodeContent'
+import SchemaFormFields from './SchemaFormFields.vue'
+import { buildSchemaSteps } from './utils'
 
 interface FormApi {
   validate?: () => Promise<unknown>
@@ -16,7 +22,8 @@ interface FormApi {
   clearValidate?: () => void
 }
 
-type SchemaSlots = Record<string, ((props: Record<string, unknown>) => VNodeChild) | undefined>
+type SchemaSlot = NonNullable<SchemaFormSlots<FormRecord>[string]>
+type SchemaSlots = Record<string, SchemaSlot | undefined>
 
 interface BodyProps {
   columns: SchemaFormColumn<FormRecord>[]
@@ -112,44 +119,21 @@ function resetFields(): void {
   formRef.value?.clearValidate?.()
 }
 
-function columnKey(column: SchemaFormColumn<FormRecord>, index: number): string {
-  const key = column.key ?? normalizePath(column.dataIndex).join('.')
-  return String(key === '' ? index : key)
-}
-
 function handleFieldChange(path: Array<string | number>, value: unknown): void {
   emit('fieldChange', path, value)
 }
 
+// `step-content` 的公开契约要求 content() 同步返回 VNodeChild；默认字段树本身已由
+// SchemaFormFields.vue 的模板实现，这里只保留创建该模板组件实例所必需的 VNode 边界。
 function renderActiveFields(): VNodeChild {
-  const fields = activeColumns.value.map((column, index) =>
-    h(SchemaFormField, {
-      key: columnKey(column, index),
-      column,
-      model: props.model,
-      readonly: props.readonly,
-      grid: effectiveGrid.value,
-      layoutType: props.layoutType,
-      schemaSlots: props.schemaSlots,
-      onValueChange: handleFieldChange,
-    }),
-  )
-
-  if (!effectiveGrid.value) return fields
-  return h(Row, { class: 'antdv-next-pro-schema-grid', gutter: 16 }, { default: () => fields })
-}
-
-function renderStepContent(): VNodeChild {
-  if (!isStepLayout.value) return renderActiveFields()
-  const slot = props.schemaSlots['step-content']
-  if (!slot) return renderActiveFields()
-  return slot({
-    current: normalizedCurrent.value,
-    step: steps.value[normalizedCurrent.value],
-    steps: steps.value,
+  return h(SchemaFormFields, {
     columns: activeColumns.value,
-    values: props.model,
-    content: renderActiveFields,
+    model: props.model,
+    readonly: props.readonly,
+    grid: effectiveGrid.value,
+    layoutType: props.layoutType,
+    schemaSlots: props.schemaSlots,
+    onFieldChange: handleFieldChange,
   })
 }
 
@@ -191,11 +175,25 @@ const stepActionSlotProps = computed(() => ({
   reset: requestReset,
 }))
 
-const ActiveContent = () => renderStepContent()
+function resolveStepContentSlotProps() {
+  return {
+    current: normalizedCurrent.value,
+    step: steps.value[normalizedCurrent.value],
+    steps: steps.value,
+    columns: activeColumns.value,
+    values: props.model,
+    content: renderActiveFields,
+  }
+}
+
+function renderStepContent(): VNodeChild {
+  return props.schemaSlots['step-content']?.(resolveStepContentSlotProps())
+}
 
 function normalizeStepTitle(title: VNodeChild, index: number): string | number | VNode {
   if (typeof title === 'string' || typeof title === 'number') return title
   if (isVNode(title)) return title
+  // Steps.items.title 需要单个标题节点；插槽允许返回节点数组，因此仅在此处保留 Fragment。
   if (Array.isArray(title)) return h(Fragment, null, title)
   return `Step ${index + 1}`
 }
@@ -222,7 +220,20 @@ defineExpose({ validateFields, resetFields })
         :wrapper-col="wrapperCol"
         @finish="emit('submit')"
       >
-        <ActiveContent />
+        <VNodeContent
+          v-if="isStepLayout && schemaSlots['step-content']"
+          :content="renderStepContent()"
+        />
+        <SchemaFormFields
+          v-else
+          :columns="activeColumns"
+          :model="model"
+          :readonly="readonly"
+          :grid="effectiveGrid"
+          :layout-type="layoutType"
+          :schema-slots="schemaSlots"
+          @field-change="handleFieldChange"
+        />
 
         <div v-if="showSubmitter" class="antdv-next-pro-schema-submitter">
           <component

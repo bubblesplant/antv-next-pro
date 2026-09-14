@@ -103,6 +103,12 @@ const recordCreatorProps: RecordCreatorProps<Member> = {
 
 每条新记录必须产生唯一 `rowKey`。`maxLength` 按展开后的树形记录总数计算；达到上限后隐藏创建按钮，通过 ref 调用 `addEditRecord` 时也会遵守该限制。
 
+### 共用字段核心与 FormItem 边界
+
+EditableProTable 不维护单独的字段映射，而是通过 ProTable 复用 [ProFormFields](/components/pro-form-fields) 的裸控件核心。`treeSelect`、`slider`、`segmented` 可和既有 `valueType` 一样用于可编辑列；checked 型字段和异步选项也使用同一套 `v-model`、竞态与错误处理。
+
+列级 `formItemProps` 只提供单元格校验和字段配置，不创建嵌套 FormItem。组件根级的 `formItemProps` 则只负责把整张 EditableProTable 包装为一个外层 FormItem，二者职责不会交叉。自定义编辑器仍使用列级 `renderFormItem`，并通过 `context.update(value)` 写回草稿。
+
 ## API
 
 ### 属性

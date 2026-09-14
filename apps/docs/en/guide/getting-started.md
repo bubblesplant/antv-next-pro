@@ -1,6 +1,6 @@
 # Getting Started
 
-`antdv-next-pro` provides `ProTable`, `EditableProTable`, and `SchemaForm` for Vue 3. All three components share one `columns` model for search, display, editing, and submission.
+`antdv-next-pro` provides 19 `ProFormFields` plus `ProTable`, `EditableProTable`, and `SchemaForm` for Vue 3. Standalone fields and all three higher-level components share one field core, while the `columns` model spans search, display, editing, and submission.
 
 ## Requirements
 
@@ -30,7 +30,7 @@ import App from './App.vue'
 createApp(App).use(Antd).use(AntdvNextPro).mount('#app')
 ```
 
-Plugin installation registers the public global names `ProTable`, `EditableProTable`, `SchemaForm`, `Form`, `Embed`, `ModalForm`, `DrawerForm`, `QueryFilter`, `LightFilter`, `StepForm`, and `StepsForm`.
+Plugin installation registers `ProTable`, `EditableProTable`, `SchemaForm`, the layout components, and all 19 template-friendly field names such as `ProFormText`, `ProFormSelect`, and `ProFormTreeSelect`. See [ProFormFields](/en/components/pro-form-fields) for the complete list.
 
 Named imports work without installing the `AntdvNextPro` plugin. The stylesheet still needs to be loaded once:
 
@@ -51,8 +51,9 @@ const columns: ProColumns<User>[] = [{ title: 'Name', dataIndex: 'name', valueTy
 </template>
 ```
 
-## Start with the three components
+## Start with the components
 
+- [ProFormFields](/en/components/pro-form-fields): 19 standalone fields with shared FormItem, bare-control, option-request, readonly, and `v-model` bridge behavior.
 - [ProTable](/en/components/pro-table): local/remote data, search, pagination, column state, and row editing.
 - [EditableProTable](/en/components/editable-pro-table): a complete table controlled as one editable field.
 - [SchemaForm](/en/components/schema-form): standard, overlay, filter, and step forms generated from `columns`.
@@ -88,7 +89,8 @@ Common `valueType` groups:
 | Scenario           | `valueType`                                                           |
 | ------------------ | --------------------------------------------------------------------- |
 | Text and numeric   | `text`, `textarea`, `password`, `digit`, `money`, `percent`           |
-| Choices and state  | `select`, `radio`, `checkbox`, `switch`                               |
+| Choices and state  | `select`, `treeSelect`, `radio`, `checkbox`, `switch`, `segmented`    |
+| Continuous values  | `slider`                                                              |
 | Date and time      | `date`, `dateTime`, `dateRange`, `dateTimeRange`, `time`, `timeRange` |
 | Table-only         | `index`, `indexBorder`, `option`                                      |
 | Schema composition | `group`, `formList`, `formSet`, `divider`, `dependency`               |

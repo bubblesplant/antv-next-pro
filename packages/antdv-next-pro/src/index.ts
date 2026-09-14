@@ -13,6 +13,7 @@ import {
   StepForm,
   StepsForm,
 } from './schema-form'
+import { proFormFieldComponents } from './pro-form-fields'
 import './style.css'
 
 const components: Array<readonly [publicName: string, component: Component]> = [
@@ -27,6 +28,7 @@ const components: Array<readonly [publicName: string, component: Component]> = [
   ['LightFilter', LightFilter],
   ['StepForm', StepForm],
   ['StepsForm', StepsForm],
+  ...proFormFieldComponents,
 ]
 
 export const AntdvNextPro: Plugin = {
@@ -51,6 +53,7 @@ export {
   StepForm,
   StepsForm,
 }
+export * from './pro-form-fields'
 export type * from './types'
 
 export default AntdvNextPro

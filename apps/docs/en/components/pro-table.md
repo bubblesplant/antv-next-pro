@@ -146,6 +146,18 @@ Column `editable` can vary by row. `formItemProps.rules` provides sync/async val
 
 `addEditRecord(record, { position, parentKey, newRecordType })` supports top/bottom insertion, tree parents, and cache/dataSource creator modes. Every new record must have a unique `rowKey`.
 
+### Shared field core
+
+Search fields, editable cells, and standalone [ProFormFields](/en/components/pro-form-fields) use the same field registry, option-request behavior, and readonly formatting:
+
+- Search items use form-item mode. `name` / `label` generated from column `dataIndex` / `title` override the same keys in `formItemProps`.
+- Editable cells use the bare-control behavior behind `fieldMode="field"`. Column `formItemProps.rules` still perform validation without creating a nested FormItem.
+- Async options for `select`, `treeSelect`, `radio`, `checkbox`, and `segmented` only accept the newest request. Empty remote results are valid; failures call `onFieldRequestError(error)` and preserve current options.
+
+`valueType` now includes `treeSelect`, `slider`, and `segmented`. Captcha and both Upload fields are standalone ProFormFields and have no column `valueType` mapping.
+
+Continue using `renderFormItem(column, context)` for a fully custom search field or editor, and a column slot or `render` for custom readonly cells. Their priority and `context.update(value)` protocol are unchanged.
+
 ## API
 
 ### Props

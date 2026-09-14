@@ -52,21 +52,22 @@ const loadInitialValues = async (params?: Record<string, unknown>) => {
 
 ### `valueType` and async options
 
-| Type                             | Generated control/structure          |
-| -------------------------------- | ------------------------------------ |
-| `text` / `textarea` / `password` | Input / Textarea / Password          |
-| `digit` / `money` / `percent`    | InputNumber                          |
-| `select` / `radio`               | Select / RadioGroup                  |
-| `checkbox` / `switch`            | Checkbox(Group) / Switch             |
-| `date` / `dateTime`              | DatePicker                           |
-| `dateRange` / `dateTimeRange`    | DateRangePicker                      |
-| `time`                           | TimePicker                           |
-| `group` / `formSet`              | Field groups                         |
-| `formList`                       | Dynamic add/remove list              |
-| `divider`                        | Divider                              |
-| `dependency`                     | Dependency or custom reactive region |
+| Type                              | Generated control/structure          |
+| --------------------------------- | ------------------------------------ |
+| `text` / `textarea` / `password`  | Input / Textarea / Password          |
+| `digit` / `money` / `percent`     | InputNumber                          |
+| `select` / `treeSelect` / `radio` | Select / TreeSelect / RadioGroup     |
+| `checkbox` / `switch`             | Checkbox(Group) / Switch             |
+| `slider` / `segmented`            | Slider / Segmented                   |
+| `date` / `dateTime`               | DatePicker                           |
+| `dateRange` / `dateTimeRange`     | DateRangePicker                      |
+| `time` / `timeRange`              | TimePicker / TimeRangePicker         |
+| `group` / `formSet`               | Field groups                         |
+| `formList`                        | Dynamic add/remove list              |
+| `divider`                         | Divider                              |
+| `dependency`                      | Dependency or custom reactive region |
 
-`select`, `radio`, and `checkbox` can use `valueEnum`, `fieldProps.options`, or a column-level async `request`:
+`select`, `treeSelect`, `radio`, `checkbox`, and `segmented` can use `valueEnum`, top-level/`fieldProps` options, or a column-level async `request`. TreeSelect uses `treeData` at the underlying control boundary:
 
 ```ts
 const channelColumn: SchemaFormColumn<Brief> = {
@@ -86,6 +87,8 @@ const channelColumn: SchemaFormColumn<Brief> = {
 ```
 
 Options reload when `request` or `params` changes, and only the latest concurrent result is accepted.
+
+SchemaForm, ProTable search/edit controls, and the [standalone ProFormFields](./pro-form-fields) share the same field registry and control core. Option requests, readonly output, and the `treeSelect`, `slider`, and `segmented` types therefore behave consistently. `timeRange` also generates a time-range control. Captcha, UploadButton, and UploadDragger remain standalone components and are not mapped to `valueType`.
 
 ### Layout types
 
@@ -145,6 +148,8 @@ const columns: SchemaFormColumn<Project>[] = [
 ```
 
 `columns` may be computed; adding or removing columns from external state creates dynamic fields. `dependencies` passes dependency values to field slots. A `dependency` column with `renderFormItem` creates a custom reactive region.
+
+For a regular field, extension precedence is: dynamic field slot (`field-${path}`, `${path}`, or the column `key`) → `renderFormItem` → `column.component` → the default `valueType` control. A `column.component` is still wrapped by SchemaForm's FormItem and receives `value`, `modelValue`, `disabled`, and matching update listeners. Use a field slot or `renderFormItem` when the custom content should take over completely.
 
 ### Value transforms
 

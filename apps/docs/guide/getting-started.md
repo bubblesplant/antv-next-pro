@@ -1,6 +1,6 @@
 # 快速开始
 
-`antdv-next-pro` 为 Vue 3 提供 `ProTable`、`EditableProTable` 与 `SchemaForm`。三个组件共享同一套 `columns` 模型，可连续描述查询、展示、编辑和提交。
+`antdv-next-pro` 为 Vue 3 提供 19 个 `ProFormFields`、`ProTable`、`EditableProTable` 与 `SchemaForm`。独立字段和三个上层组件共享同一套字段核心；`columns` 模型可连续描述查询、展示、编辑和提交。
 
 ## 环境要求
 
@@ -30,7 +30,7 @@ import App from './App.vue'
 createApp(App).use(Antd).use(AntdvNextPro).mount('#app')
 ```
 
-安装插件后，可直接使用全局组件名 `ProTable`、`EditableProTable`、`SchemaForm`、`Form`、`Embed`、`ModalForm`、`DrawerForm`、`QueryFilter`、`LightFilter`、`StepForm` 和 `StepsForm`。
+安装插件后，可直接使用全局组件名 `ProTable`、`EditableProTable`、`SchemaForm`、布局组件，以及 `ProFormText`、`ProFormSelect`、`ProFormTreeSelect` 等 19 个模板友好字段名。完整清单见 [ProFormFields](/components/pro-form-fields)。
 
 组件也支持具名导入，无需安装 `AntdvNextPro` 插件。样式入口仍需加载一次：
 
@@ -51,8 +51,9 @@ const columns: ProColumns<User>[] = [{ title: '姓名', dataIndex: 'name', value
 </template>
 ```
 
-## 从三个组件开始
+## 从组件开始
 
+- [ProFormFields](/components/pro-form-fields)：19 个独立字段，统一 FormItem、裸控件、选项请求、只读和 `v-model` 桥接。
 - [ProTable](/components/pro-table)：本地/远程数据、搜索、分页、列状态和行编辑。
 - [EditableProTable](/components/editable-pro-table)：将完整表格作为一个受控可编辑字段。
 - [SchemaForm](/components/schema-form)：从 `columns` 生成普通、弹层、筛选和步骤表单。
@@ -88,7 +89,8 @@ React Pro Components 的工作流会以 Vue 惯用方式表达：
 | 场景        | `valueType`                                                           |
 | ----------- | --------------------------------------------------------------------- |
 | 文本与数字  | `text`、`textarea`、`password`、`digit`、`money`、`percent`           |
-| 选择与状态  | `select`、`radio`、`checkbox`、`switch`                               |
+| 选择与状态  | `select`、`treeSelect`、`radio`、`checkbox`、`switch`、`segmented`    |
+| 连续数值    | `slider`                                                              |
 | 日期与时间  | `date`、`dateTime`、`dateRange`、`dateTimeRange`、`time`、`timeRange` |
 | 表格专用    | `index`、`indexBorder`、`option`                                      |
 | Schema 组合 | `group`、`formList`、`formSet`、`divider`、`dependency`               |

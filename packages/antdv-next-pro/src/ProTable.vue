@@ -7,7 +7,7 @@
   "
 >
 import type { TableColumnsType } from 'antdv-next'
-import type { CSSProperties, PropType, VNodeChild } from 'vue'
+import type { CSSProperties, VNodeChild } from 'vue'
 import type {
   EditableAction,
   ProColumns,
@@ -32,18 +32,10 @@ import {
   UpOutlined,
 } from '@antdv-next/icons'
 import { Button, Checkbox, Pagination, Popconfirm, Space, Table, theme } from 'antdv-next'
-import {
-  computed,
-  defineComponent,
-  h,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  shallowRef,
-  useSlots,
-  watch,
-} from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useSlots, watch } from 'vue'
 
+import ProFormField from './pro-form-fields/ProFormField.vue'
+import RenderNode from './table/RenderNode.vue'
 import { useEditableTable } from './table/editable'
 import {
   formatProValue,
@@ -51,6 +43,7 @@ import {
   resolveFieldOptions,
   ValueTypeControl,
   type ProFieldOption,
+  type ProFieldOptionSource,
 } from './table/ValueTypeControl'
 import {
   applyLocalQuery,
@@ -98,16 +91,6 @@ const DEFAULT_LOCALE_TEXT: ProTableLocaleText = {
   setting: '列设置',
 }
 
-const RenderNode = defineComponent({
-  name: 'AntdvNextProRenderNode',
-  props: {
-    content: { type: null as unknown as PropType<VNodeChild>, default: undefined },
-  },
-  setup(renderProps) {
-    return () => h('span', { class: 'antdv-next-pro__render-node' }, [renderProps.content])
-  },
-})
-
 const slots = useSlots()
 const { token } = theme.useToken()
 const rootElement = ref<HTMLElement>()
@@ -126,8 +109,8 @@ const settingsOpen = ref(false)
 const fallbackFullscreen = ref(false)
 const density = ref<'small' | 'middle' | 'large'>(props.size ?? 'middle')
 const columnsState = ref<Record<string, ProColumnsState>>(loadColumnsState(props.columnsState))
-const remoteColumnOptions = ref(new Map<string, ProFieldOption[]>())
-const loadingOptionKeys = ref(new Set<string>())
+const remoteColumnOptions = shallowRef(new Map<string, ProFieldOption[]>())
+const loadingOptionKeys = shallowRef(new Set<string>())
 const mounted = ref(false)
 let requestSequence = 0
 let optionRequestSequence = 0
@@ -801,11 +784,12 @@ function hasCustomActions(): boolean {
 
 function fieldOptions(column: ProColumns<T>, record?: T): ProFieldOption[] {
   const props = fieldProps(column, record)
-  return resolveFieldOptions(
-    column as unknown as ProColumns<Record<string, unknown>>,
-    remoteColumnOptions.value.get(columnKey(column)) ?? [],
-    props,
-  )
+  const source: ProFieldOptionSource = {
+    valueType: column.valueType,
+    valueEnum: column.valueEnum,
+  }
+  const remoteOptions = remoteColumnOptions.value.get(columnKey(column))
+  return resolveFieldOptions(source, remoteOptions, props)
 }
 
 function fieldProps(column: ProColumns<T>, record?: T): Record<string, unknown> {
@@ -816,6 +800,44 @@ function fieldProps(column: ProColumns<T>, record?: T): Record<string, unknown> 
 
 function searchFieldProps(column: ProColumns<T>): Record<string, unknown> {
   return fieldProps(column)
+}
+
+function searchFormItemProps(column: ProColumns<T>): Record<string, unknown> {
+  return typeof column.formItemProps === 'function'
+    ? column.formItemProps(undefined)
+    : (column.formItemProps ?? {})
+}
+
+function searchFieldBindings(column: ProColumns<T>): Record<string, unknown> {
+  const resolvedFieldProps: Record<string, unknown> = {
+    allowClear: true,
+    ...searchFieldProps(column),
+  }
+  const options = fieldOptions(column)
+  const result: Record<string, unknown> = {
+    fieldMode: 'form-item',
+    fieldType:
+      column.valueType ??
+      (options.length > 0 || column.valueEnum !== undefined ? 'select' : 'text'),
+    modelValue: searchValues.value[columnKey(column)],
+    name: column.dataIndex,
+    label: resolveColumnTitle(column),
+    fieldProps: resolvedFieldProps,
+    formItemProps: searchFormItemProps(column),
+    loading: isOptionLoading(column),
+  }
+
+  if (
+    options.length > 0 ||
+    column.request !== undefined ||
+    column.valueEnum !== undefined ||
+    Array.isArray(resolvedFieldProps.options) ||
+    Array.isArray(resolvedFieldProps.treeData)
+  ) {
+    result.options = options
+  }
+
+  return result
 }
 
 function isOptionLoading(column: ProColumns<T>): boolean {
@@ -829,19 +851,37 @@ async function loadColumnOptions(): Promise<void> {
       typeof column.request === 'function',
   )
   loadingOptionKeys.value = new Set(requestColumns.map((column) => columnKey(column)))
-  const entries = await Promise.all(
+  const results = await Promise.all(
     requestColumns.map(async (column) => {
       try {
         const options = await column.request(column.params)
-        return [columnKey(column), options.map(normalizeFieldOption)] as const
-      } catch {
-        return [columnKey(column), [] as ProFieldOption[]] as const
+        return {
+          column,
+          key: columnKey(column),
+          options: options.map(normalizeFieldOption),
+        }
+      } catch (error) {
+        return { column, key: columnKey(column), error }
       }
     }),
   )
   if (sequence !== optionRequestSequence) return
-  remoteColumnOptions.value = new Map(entries)
+
+  const requestKeys = new Set(requestColumns.map((column) => columnKey(column)))
+  const nextOptions = new Map(remoteColumnOptions.value)
+  for (const key of nextOptions.keys()) {
+    if (!requestKeys.has(key)) nextOptions.delete(key)
+  }
+  for (const result of results) {
+    if ('error' in result) continue
+    nextOptions.set(result.key, result.options)
+  }
+  remoteColumnOptions.value = nextOptions
   loadingOptionKeys.value = new Set()
+
+  for (const result of results) {
+    if ('error' in result) result.column.onFieldRequestError?.(result.error)
+  }
 }
 
 function searchFieldStyle(): CSSProperties {
@@ -965,6 +1005,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   requestSequence += 1
+  optionRequestSequence += 1
   if (pollingTimer) clearInterval(pollingTimer)
   window.removeEventListener('focus', onWindowFocus)
   document.removeEventListener('fullscreenchange', onFullscreenChange)
@@ -1068,22 +1109,14 @@ defineExpose<
       @submit.prevent="submitSearch"
     >
       <div class="antdv-next-pro__search-fields" :style="searchGridStyle">
-        <label
+        <ProFormField
           v-for="(column, index) in visibleSearchableColumns"
           :key="columnKey(column, String(index))"
+          v-bind="searchFieldBindings(column)"
           class="antdv-next-pro__search-field"
           :style="searchFieldStyle()"
-        >
-          <span class="antdv-next-pro__search-label">{{ resolveColumnTitle(column) }}</span>
-          <ValueTypeControl
-            :column="column"
-            :value="searchValues[columnKey(column)]"
-            :options="fieldOptions(column)"
-            :loading="isOptionLoading(column)"
-            :field-props="{ allowClear: true, ...searchFieldProps(column) }"
-            @update:value="setSearchValue(column, $event)"
-          />
-        </label>
+          @update:model-value="setSearchValue(column, $event)"
+        />
         <div class="antdv-next-pro__search-actions">
           <Button html-type="button" @click="resetSearch">
             {{
@@ -1274,6 +1307,7 @@ defineExpose<
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 8px;
+  margin-block-end: 0;
 }
 
 .antdv-next-pro__search-label {

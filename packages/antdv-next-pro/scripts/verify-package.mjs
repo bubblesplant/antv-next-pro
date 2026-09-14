@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import ts from 'typescript'
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const packageRoot = resolve(scriptDirectory, '..')
@@ -58,36 +59,218 @@ const expectedRuntimeExports = [
   'DrawerForm',
   'EditableProTable',
   'Embed',
+  'FieldControl',
   'Form',
   'LightFilter',
   'ModalForm',
+  'ProFormCaptcha',
+  'ProFormCheckbox',
+  'ProFormDatePicker',
+  'ProFormDateRangePicker',
+  'ProFormDateTimePicker',
+  'ProFormDateTimeRangePicker',
+  'ProFormDigit',
+  'ProFormField',
+  'ProFormMoney',
+  'ProFormRadio',
+  'ProFormRadioGroup',
+  'ProFormSegmented',
+  'ProFormSelect',
+  'ProFormSlider',
+  'ProFormSwitch',
   'ProTable',
+  'ProFormText',
+  'ProFormTextArea',
+  'ProFormTextPassword',
+  'ProFormTreeSelect',
+  'ProFormUploadButton',
+  'ProFormUploadDragger',
   'QueryFilter',
+  'ReadonlyField',
   'SchemaForm',
   'StepForm',
   'StepsForm',
   'default',
 ]
 
-const esmSource = readFileSync(resolve(packageRoot, 'dist/index.js'), 'utf8')
-const esmExportBlock = esmSource.match(
-  /export\s*\{([\s\S]*?)\};?\s*(?:\/\/# sourceMappingURL|$)/,
-)?.[1]
-assert.ok(esmExportBlock, '无法读取 ESM 导出列表')
-const esmExports = new Set(
-  esmExportBlock.split(',').map((specifier) => {
-    const parts = specifier.trim().split(/\s+as\s+/)
-    return parts.at(-1)
-  }),
-)
+function parseBundle(file, format) {
+  const source = readFileSync(resolve(packageRoot, file), 'utf8')
+  const sourceFile = ts.createSourceFile(
+    file,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.JS,
+  )
+  assert.equal(
+    sourceFile.parseDiagnostics.length,
+    0,
+    `${format} 产物存在语法错误：${sourceFile.parseDiagnostics
+      .map((diagnostic) => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
+      .join('; ')}`,
+  )
 
-const cjsSource = readFileSync(resolve(packageRoot, 'dist/index.cjs'), 'utf8')
-const cjsExports = new Set(
-  Array.from(cjsSource.matchAll(/exports\.([A-Za-z_$][\w$]*)\s*=/g), (match) => match[1]),
-)
-for (const name of expectedRuntimeExports) {
-  assert.ok(esmExports.has(name), `ESM 缺少导出 ${name}`)
-  assert.ok(cjsExports.has(name), `CJS 缺少导出 ${name}`)
+  const exportBindings = new Map()
+  for (const statement of sourceFile.statements) {
+    if (format === 'ESM' && ts.isExportDeclaration(statement)) {
+      const exportClause = statement.exportClause
+      if (!exportClause || !ts.isNamedExports(exportClause)) continue
+      for (const specifier of exportClause.elements) {
+        exportBindings.set(specifier.name.text, (specifier.propertyName ?? specifier.name).text)
+      }
+      continue
+    }
+
+    if (
+      format === 'CJS' &&
+      ts.isExpressionStatement(statement) &&
+      ts.isBinaryExpression(statement.expression) &&
+      statement.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+      ts.isPropertyAccessExpression(statement.expression.left) &&
+      ts.isIdentifier(statement.expression.left.expression) &&
+      statement.expression.left.expression.text === 'exports' &&
+      ts.isIdentifier(statement.expression.right)
+    ) {
+      exportBindings.set(statement.expression.left.name.text, statement.expression.right.text)
+    }
+  }
+
+  return { exportBindings, format, sourceFile }
+}
+
+function getTopLevelVariable(sourceFile, binding, format) {
+  for (const statement of sourceFile.statements) {
+    if (!ts.isVariableStatement(statement)) continue
+    for (const declaration of statement.declarationList.declarations) {
+      if (ts.isIdentifier(declaration.name) && declaration.name.text === binding) {
+        assert.ok(
+          statement.declarationList.flags & ts.NodeFlags.Const,
+          `${format} 的 ${binding} 必须使用 const 声明`,
+        )
+        assert.ok(declaration.initializer, `${format} 的 ${binding} 缺少初始化表达式`)
+        return declaration
+      }
+    }
+  }
+  assert.fail(`${format} 无法定位顶层绑定 ${binding}`)
+}
+
+function isStaticMethodCall(node, object, method) {
+  return (
+    ts.isCallExpression(node) &&
+    ts.isPropertyAccessExpression(node.expression) &&
+    ts.isIdentifier(node.expression.expression) &&
+    node.expression.expression.text === object &&
+    node.expression.name.text === method
+  )
+}
+
+function assertExactObjectAlias(objectLiteral, property, targetBinding, format, owner) {
+  assert.ok(
+    ts.isObjectLiteralExpression(objectLiteral),
+    `${format} 的 ${owner} 别名参数必须是对象字面量`,
+  )
+  assert.equal(
+    objectLiteral.properties.length,
+    1,
+    `${format} 的 ${owner} 别名对象必须只包含 ${property}`,
+  )
+  const aliasProperty = objectLiteral.properties[0]
+  assert.ok(
+    ts.isPropertyAssignment(aliasProperty) &&
+      aliasProperty.name.getText() === property &&
+      ts.isIdentifier(aliasProperty.initializer) &&
+      aliasProperty.initializer.text === targetBinding,
+    `${format} 的 ${owner}.${property} 应直接指向 ${targetBinding}`,
+  )
+}
+
+function isOwnerProperty(node, ownerBinding, property) {
+  return (
+    (ts.isPropertyAccessExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === ownerBinding &&
+      node.name.text === property) ||
+    (ts.isElementAccessExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === ownerBinding &&
+      ts.isStringLiteralLike(node.argumentExpression) &&
+      node.argumentExpression.text === property)
+  )
+}
+
+function assertNoAliasOverwrite(sourceFile, declaration, format, ownerBinding, property) {
+  const overwrites = []
+  const visit = (node) => {
+    if (node.getStart(sourceFile) > declaration.end) {
+      if (
+        ts.isBinaryExpression(node) &&
+        node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment &&
+        node.operatorToken.kind <= ts.SyntaxKind.LastAssignment &&
+        (isOwnerProperty(node.left, ownerBinding, property) ||
+          (ts.isIdentifier(node.left) && node.left.text === ownerBinding))
+      ) {
+        overwrites.push(node.getText(sourceFile))
+      } else if (
+        (ts.isPrefixUnaryExpression(node) || ts.isPostfixUnaryExpression(node)) &&
+        (node.operator === ts.SyntaxKind.PlusPlusToken ||
+          node.operator === ts.SyntaxKind.MinusMinusToken) &&
+        isOwnerProperty(node.operand, ownerBinding, property)
+      ) {
+        overwrites.push(node.getText(sourceFile))
+      } else if (
+        ts.isDeleteExpression(node) &&
+        isOwnerProperty(node.expression, ownerBinding, property)
+      ) {
+        overwrites.push(node.getText(sourceFile))
+      } else if (
+        ts.isCallExpression(node) &&
+        node.arguments[0] &&
+        ts.isIdentifier(node.arguments[0]) &&
+        node.arguments[0].text === ownerBinding &&
+        (isStaticMethodCall(node, 'Object', 'assign') ||
+          isStaticMethodCall(node, 'Object', 'defineProperty') ||
+          isStaticMethodCall(node, 'Object', 'defineProperties') ||
+          isStaticMethodCall(node, 'Reflect', 'set'))
+      ) {
+        overwrites.push(node.getText(sourceFile))
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sourceFile)
+  assert.deepEqual(overwrites, [], `${format} 的 ${ownerBinding}.${property} 存在后续覆写`)
+}
+
+function assertBundledAlias(bundle, owner, property, target, factory) {
+  const { exportBindings, format, sourceFile } = bundle
+  const ownerBinding = exportBindings.get(owner)
+  const targetBinding = exportBindings.get(target)
+  assert.ok(ownerBinding, `${format} 无法定位导出 ${owner} 的绑定`)
+  assert.ok(targetBinding, `${format} 无法定位导出 ${target} 的绑定`)
+
+  const declaration = getTopLevelVariable(sourceFile, ownerBinding, format)
+  const initializer = declaration.initializer
+  assert.ok(
+    isStaticMethodCall(initializer, 'Object', factory),
+    `${format} 的 ${owner} 必须由 Object.${factory} 初始化`,
+  )
+  assert.equal(
+    initializer.arguments.length,
+    factory === 'assign' ? 2 : 1,
+    `${format} 的 ${owner} 使用了非预期的 Object.${factory} 参数`,
+  )
+  const aliasObject = initializer.arguments[factory === 'assign' ? 1 : 0]
+  assertExactObjectAlias(aliasObject, property, targetBinding, format, owner)
+  assertNoAliasOverwrite(sourceFile, declaration, format, ownerBinding, property)
+}
+
+for (const bundle of [parseBundle('dist/index.js', 'ESM'), parseBundle('dist/index.cjs', 'CJS')]) {
+  for (const name of expectedRuntimeExports) {
+    assert.ok(bundle.exportBindings.has(name), `${bundle.format} 缺少导出 ${name}`)
+  }
+  assertBundledAlias(bundle, 'ProFormText', 'Password', 'ProFormTextPassword', 'assign')
+  assertBundledAlias(bundle, 'ProFormRadio', 'Group', 'ProFormRadioGroup', 'freeze')
 }
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'

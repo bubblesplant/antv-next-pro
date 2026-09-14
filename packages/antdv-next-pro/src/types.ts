@@ -9,9 +9,12 @@ export type ProValueType =
   | 'money'
   | 'percent'
   | 'select'
+  | 'treeSelect'
   | 'radio'
   | 'checkbox'
   | 'switch'
+  | 'slider'
+  | 'segmented'
   | 'date'
   | 'dateTime'
   | 'dateRange'
@@ -28,14 +31,17 @@ export type ProValueType =
   | 'divider'
   | 'dependency'
 
-export interface ProValueEnumItem {
+export interface ProValueEnumItem<Value = unknown> {
   text: string
   color?: string
   disabled?: boolean
   status?: string
+  value?: Value
 }
 
-export type ProValueEnum = Record<ProKey, string | ProValueEnumItem>
+export type ProValueEnum<Value = unknown> =
+  | Record<ProKey, string | ProValueEnumItem<Value>>
+  | ReadonlyMap<Value, string | ProValueEnumItem<Value>>
 
 export interface ProRenderContext<T extends Record<string, unknown>> {
   record: T
@@ -53,6 +59,7 @@ export interface ProColumns<T extends Record<string, unknown> = Record<string, u
   valueType?: ProValueType
   valueEnum?: ProValueEnum | (() => ProValueEnum)
   request?: (params?: Record<string, unknown>) => Promise<Array<Record<string, unknown>>>
+  onFieldRequestError?: (error: unknown) => void
   params?: Record<string, unknown>
   width?: number | string
   minWidth?: number
@@ -215,6 +222,11 @@ export interface ProTableInstance<T extends Record<string, unknown> = Record<str
   saveEditable: (key: ProKey) => Promise<boolean>
   cancelEditable: (key: ProKey) => void
   addEditRecord: (record: T, options?: Omit<RecordCreatorProps<T>, 'record'>) => boolean
+  /** Numeric values resolve as an exact row key before falling back to a top-level row index. */
+  getRowData: (indexOrKey: number | ProKey) => T | undefined
+  getRowsData: () => T[]
+  /** Numeric values resolve as an exact row key before falling back to a top-level row index. */
+  setRowData: (indexOrKey: number | ProKey, value: Partial<T>) => boolean
 }
 
 export interface EditableProTableProps<

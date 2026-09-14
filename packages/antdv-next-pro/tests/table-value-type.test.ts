@@ -1,4 +1,4 @@
-import { flushPromises, shallowMount } from '@vue/test-utils'
+import { flushPromises, mount, shallowMount } from '@vue/test-utils'
 import {
   Checkbox,
   CheckboxGroup,
@@ -8,16 +8,20 @@ import {
   InputNumber,
   InputPassword,
   RadioGroup,
+  Segmented,
   Select,
+  Slider,
   Switch,
   TextArea,
   TimePicker,
   TimeRangePicker,
+  TreeSelect,
 } from 'antdv-next'
 import { describe, expect, it, vi } from 'vite-plus/test'
-import { type Component } from 'vue'
+import { h, type Component } from 'vue'
 
 import ProTable from '../src/ProTable.vue'
+import ProFormField from '../src/pro-form-fields/ProFormField.vue'
 import type { ProValueType } from '../src/types'
 import {
   formatProValue,
@@ -44,10 +48,13 @@ describe('table value type controls', () => {
       { type: 'money', component: InputNumber },
       { type: 'percent', component: InputNumber },
       { type: 'select', component: Select, options },
+      { type: 'treeSelect', component: TreeSelect, options },
       { type: 'radio', component: RadioGroup, options },
       { type: 'checkbox', component: Checkbox },
       { type: 'checkbox', component: CheckboxGroup, options },
       { type: 'switch', component: Switch },
+      { type: 'slider', component: Slider },
+      { type: 'segmented', component: Segmented, options },
       { type: 'date', component: DatePicker },
       { type: 'dateTime', component: DatePicker },
       { type: 'dateRange', component: DateRangePicker },
@@ -57,10 +64,17 @@ describe('table value type controls', () => {
     ]
 
     for (const item of cases) {
-      const wrapper = shallowMount(ValueTypeControl, {
+      const wrapper = mount(ValueTypeControl, {
         props: {
           column: { dataIndex: 'value', valueType: item.type },
-          value: item.type === 'checkbox' || item.type === 'switch' ? false : undefined,
+          value:
+            item.type === 'checkbox'
+              ? item.options
+                ? []
+                : false
+              : item.type === 'switch'
+                ? false
+                : undefined,
           options: item.options ?? [],
         },
       })
@@ -70,7 +84,7 @@ describe('table value type controls', () => {
   })
 
   it('emits model updates and applies money and percent affordances', () => {
-    const money = shallowMount(ValueTypeControl, {
+    const money = mount(ValueTypeControl, {
       props: { column: { valueType: 'money' }, value: 12 },
     })
     const moneyInput = money.findComponent(InputNumber)
@@ -78,15 +92,89 @@ describe('table value type controls', () => {
     expect(money.emitted('update:value')).toEqual([[20]])
     expect(moneyInput.props('prefix')).toBe('¥')
 
-    const percent = shallowMount(ValueTypeControl, {
+    const percent = mount(ValueTypeControl, {
       props: { column: { valueType: 'percent' }, value: 12 },
     })
     expect(percent.findComponent(InputNumber).props('addonAfter')).toBe('%')
   })
 
+  it.each([
+    ['checkbox', Checkbox],
+    ['switch', Switch],
+  ] as const)('forwards the fieldProps %s update handler once', (valueType, component) => {
+    const fieldUpdate = vi.fn()
+    const wrapper = mount(ValueTypeControl, {
+      props: {
+        column: { valueType },
+        value: false,
+        fieldProps: { 'onUpdate:checked': fieldUpdate },
+      },
+    })
+
+    wrapper.findComponent(component).vm.$emit('update:checked', true)
+    expect(wrapper.emitted('update:value')).toEqual([[true]])
+    expect(fieldUpdate).toHaveBeenCalledExactlyOnceWith(true)
+  })
+
+  it('forwards fallthrough attributes and listeners to the resolved control', () => {
+    const checkedUpdate = vi.fn()
+    const wrapper = mount(ValueTypeControl, {
+      props: { column: { valueType: 'checkbox' }, value: false },
+      attrs: {
+        'data-testid': 'value-type-control',
+        'onUpdate:checked': checkedUpdate,
+      },
+    })
+
+    const checkbox = wrapper.findComponent(Checkbox)
+    expect(checkbox.attributes('data-testid')).toBe('value-type-control')
+
+    checkbox.vm.$emit('update:checked', true)
+    expect(wrapper.emitted('update:value')).toEqual([[true]])
+    expect(checkedUpdate).toHaveBeenCalledWith(true)
+  })
+
+  it('reuses a control instance when related value types share the same component', async () => {
+    const wrapper = mount(ValueTypeControl, {
+      props: { column: { valueType: 'digit' }, value: 12 },
+    })
+    const input = wrapper.findComponent(InputNumber).vm
+
+    await wrapper.setProps({ column: { valueType: 'money' } })
+    expect(wrapper.findComponent(InputNumber).vm).toBe(input)
+
+    await wrapper.setProps({ column: { valueType: 'percent' } })
+    expect(wrapper.findComponent(InputNumber).vm).toBe(input)
+  })
+
+  it('re-reads in-place configuration changes on an unrelated rerender', async () => {
+    const column: { valueType: ProValueType } = { valueType: 'text' }
+    const fieldProps: Record<string, unknown> = { placeholder: 'Before' }
+    const options: ProFieldOption[] = []
+    const wrapper = mount(ValueTypeControl, {
+      props: { column, value: undefined, options, fieldProps, loading: false },
+    })
+
+    expect(wrapper.findComponent(Input).exists()).toBe(true)
+
+    column.valueType = 'select'
+    fieldProps.placeholder = 'After'
+    options.push({ label: 'Enabled', value: 'enabled' })
+    await wrapper.setProps({ loading: true })
+
+    const select = wrapper.findComponent(Select)
+    expect(select.exists()).toBe(true)
+    expect(select.props('placeholder')).toBe('After')
+    expect(select.props('options')).toEqual([
+      expect.objectContaining({ label: 'Enabled', value: 'enabled' }),
+    ])
+    expect(select.props('loading')).toBe(true)
+  })
+
   it('formats readonly enum, ranges, password, money, percent and date-like values', () => {
     const options = [{ label: 'Enabled', value: 'enabled' }]
     const dateLike = { format: vi.fn(() => '2026-08-23') }
+    const richLabel = h('span', 'Complex')
 
     expect(formatProValue('enabled', options, 'select')).toBe('Enabled')
     expect(formatProValue(['enabled', 'missing'], options, 'checkbox')).toBe('Enabled, missing')
@@ -96,13 +184,13 @@ describe('table value type controls', () => {
     expect(formatProValue(80, [], 'percent')).toBe('80%')
     expect(formatProValue(dateLike, [], 'date')).toBe('2026-08-23')
     expect(formatProValue({ nested: true }, [], 'text')).toBe('-')
-    expect(
-      formatProValue('complex', [{ label: { unsafe: true }, value: 'complex' }], 'select'),
-    ).toBe('complex')
+    expect(formatProValue('complex', [{ label: richLabel, value: 'complex' }], 'select')).toBe(
+      richLabel,
+    )
     expect(dateLike.format).toHaveBeenCalledWith('YYYY-MM-DD')
   })
 
-  it('loads column request options for the shared search and edit control', async () => {
+  it('loads column request options for the ProFormField search control', async () => {
     const request = vi.fn(async () => [
       { label: 'Enabled', value: 'enabled' },
       { text: 'Disabled', key: 'disabled', disabled: true },
@@ -126,11 +214,87 @@ describe('table value type controls', () => {
     await vi.waitFor(() => expect(request).toHaveBeenCalledWith({ scope: 'active' }))
     await flushPromises()
 
-    const control = wrapper.findComponent(ValueTypeControl)
+    const control = wrapper.findComponent(ProFormField)
     expect(control.props('options')).toEqual([
-      { label: 'Enabled', value: 'enabled', disabled: false },
-      { label: 'Disabled', value: 'disabled', disabled: true },
+      expect.objectContaining({ label: 'Enabled', value: 'enabled', disabled: false }),
+      expect.objectContaining({ label: 'Disabled', value: 'disabled', disabled: true }),
     ])
     expect(control.props('loading')).toBe(false)
+  })
+
+  it('treats an empty remote option result as authoritative', async () => {
+    const request = vi.fn(async () => [])
+    const wrapper = shallowMount(ProTable, {
+      props: {
+        columns: [
+          {
+            dataIndex: 'status',
+            valueType: 'select',
+            valueEnum: { local: 'Local' },
+            request,
+          },
+        ],
+        dataSource: [],
+        pagination: false,
+      },
+    })
+
+    await vi.waitFor(() => expect(request).toHaveBeenCalledOnce())
+    await flushPromises()
+
+    expect(wrapper.findComponent(ProFormField).props('options')).toEqual([])
+    wrapper.unmount()
+  })
+
+  it('keeps the last successful options when a later request fails', async () => {
+    const requestError = new Error('network failed')
+    const onFieldRequestError = vi.fn()
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce([{ label: 'Remote', value: 'remote' }])
+      .mockRejectedValueOnce(requestError)
+    const wrapper = shallowMount(ProTable, {
+      props: {
+        columns: [
+          {
+            dataIndex: 'status',
+            valueType: 'select',
+            valueEnum: { local: 'Local' },
+            params: { page: 1 },
+            request,
+            onFieldRequestError,
+          },
+        ],
+        dataSource: [],
+        pagination: false,
+      },
+    })
+
+    await vi.waitFor(() => expect(request).toHaveBeenCalledOnce())
+    await flushPromises()
+    expect(wrapper.findComponent(ProFormField).props('options')).toEqual([
+      expect.objectContaining({ label: 'Remote', value: 'remote' }),
+    ])
+
+    await wrapper.setProps({
+      columns: [
+        {
+          dataIndex: 'status',
+          valueType: 'select',
+          valueEnum: { local: 'Local' },
+          params: { page: 2 },
+          request,
+          onFieldRequestError,
+        },
+      ],
+    })
+    await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(2))
+    await flushPromises()
+
+    expect(wrapper.findComponent(ProFormField).props('options')).toEqual([
+      expect.objectContaining({ label: 'Remote', value: 'remote' }),
+    ])
+    expect(onFieldRequestError).toHaveBeenCalledExactlyOnceWith(requestError)
+    wrapper.unmount()
   })
 })

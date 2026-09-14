@@ -20,7 +20,10 @@ const zhComponents = [
   },
   {
     text: '数据录入',
-    items: [{ text: 'SchemaForm', link: '/components/schema-form' }],
+    items: [
+      { text: 'ProFormFields', link: '/components/pro-form-fields' },
+      { text: 'SchemaForm', link: '/components/schema-form' },
+    ],
   },
 ]
 
@@ -42,7 +45,10 @@ const enComponents = [
   },
   {
     text: 'Data Entry',
-    items: [{ text: 'SchemaForm', link: '/en/components/schema-form' }],
+    items: [
+      { text: 'ProFormFields', link: '/en/components/pro-form-fields' },
+      { text: 'SchemaForm', link: '/en/components/schema-form' },
+    ],
   },
 ]
 

@@ -1,6 +1,6 @@
 # antdv-next-pro
 
-Vue 3 ProTable, EditableProTable, and SchemaForm powered by Antdv Next.
+Vue 3 ProTable, EditableProTable, SchemaForm, and ProFormFields powered by Antdv Next.
 
 The API follows the major workflows of `@ant-design/pro-components@2.8.10`, expressed through idiomatic Vue `v-model`, events, slots, and component refs.
 
@@ -22,6 +22,9 @@ Named imports are available:
 ```ts
 import {
   EditableProTable,
+  ProFormSelect,
+  ProFormText,
+  ProFormUploadButton,
   ProTable,
   SchemaForm,
   type EditableProTableInstance,
@@ -84,9 +87,48 @@ Available layouts are `Form`, `Embed`, `ModalForm`, `DrawerForm`, `QueryFilter`,
 
 `convertValue` transforms inbound values; `transform` shapes submitted values.
 
+SchemaForm and the table search/edit controls share the same field registry. In addition to the existing types, `treeSelect`, `slider`, and `segmented` are available across these consumers; SchemaForm also supports `timeRange`.
+
+## ProFormFields
+
+Each field is independently importable, uses standard Vue `v-model`, and includes an Antdv Next FormItem by default. Set `fieldMode="field"` when a table cell, custom grid, or parent component already owns the FormItem.
+
+```vue
+<script setup lang="ts">
+import { Form } from 'antdv-next'
+import { reactive } from 'vue'
+import { ProFormSelect, ProFormText } from 'antdv-next-pro'
+
+const form = reactive({ title: '', owner: undefined as string | undefined })
+
+async function loadOwners() {
+  return [
+    { label: 'Ada', value: 'ada' },
+    { label: 'Lin', value: 'lin' },
+  ]
+}
+</script>
+
+<template>
+  <Form :model="form" layout="vertical">
+    <ProFormText v-model="form.title" name="title" label="Title" />
+    <ProFormSelect v-model="form.owner" name="owner" label="Owner" :request="loadOwners" />
+  </Form>
+</template>
+```
+
+The 19 template-friendly field exports are:
+
+- Text and numeric: `ProFormText`, `ProFormTextPassword`, `ProFormTextArea`, `ProFormDigit`, `ProFormMoney`, `ProFormCaptcha`.
+- Date/time: `ProFormDatePicker`, `ProFormDateTimePicker`, `ProFormDateRangePicker`, `ProFormDateTimeRangePicker`.
+- Choice and state: `ProFormSelect`, `ProFormTreeSelect`, `ProFormCheckbox`, `ProFormRadioGroup`, `ProFormSlider`, `ProFormSwitch`, `ProFormSegmented`.
+- Upload: `ProFormUploadButton`, `ProFormUploadDragger`.
+
+`ProFormText.Password` aliases `ProFormTextPassword`, and `ProFormRadio.Group` aliases `ProFormRadioGroup`. Captcha only manages callback/loading/countdown state and never sends a code by itself. Upload fields bridge `fileList` to `v-model` but do not provide an upload backend; configure `action` or `customRequest` in `fieldProps`. Captcha and both Upload fields are standalone components rather than Schema/table `valueType` values.
+
 ## 中文简介
 
-`antdv-next-pro` 为 Vue 3 + Antdv Next 提供高阶表格和 Schema 表单。三个组件共享 `columns` 字段模型，支持通用 Promise 请求、受控双向绑定、异步编辑以及普通/查询/弹层/步骤表单。
+`antdv-next-pro` 为 Vue 3 + Antdv Next 提供高阶表格、Schema 表单和 19 个独立 ProFormFields。表格与表单共享字段核心，支持通用 Promise 请求、受控双向绑定、异步选项/编辑以及普通、查询、弹层和步骤表单。
 
 - [完整中文文档](https://bubblesplant.github.io/antv-next-pro/)
 - [English documentation](https://bubblesplant.github.io/antv-next-pro/en/)

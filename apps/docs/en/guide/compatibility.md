@@ -58,10 +58,10 @@ Other slots not consumed by ProTable are forwarded to the underlying Antdv Next 
 | Category    | Types                                                                 | ProTable / EditableProTable                                          | SchemaForm                                              |
 | ----------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------- |
 | Text        | `text`, `textarea`, `password`                                        | Input, Textarea, Password search/edit controls and formatted display | Input, Textarea, Password                               |
-| Numeric     | `digit`, `money`, `percent`                                           | Numeric search and inline InputNumber                                | InputNumber with money/percent affordances              |
-| Choices     | `select`, `radio`                                                     | Select / Radio search and editing with `valueEnum`                   | Select and Radio                                        |
+| Numeric     | `digit`, `money`, `percent`, `slider`                                 | Numeric search and inline InputNumber / Slider                       | InputNumber, Slider, and money/percent affordances      |
+| Choices     | `select`, `treeSelect`, `radio`, `segmented`                          | Choice search/edit controls with `valueEnum`                         | Select, TreeSelect, Radio, and Segmented                |
 | State       | `checkbox`, `switch`                                                  | Inline Checkbox / Switch                                             | Checkbox(Group) / Switch                                |
-| Date/time   | `date`, `dateTime`, `dateRange`, `dateTimeRange`, `time`, `timeRange` | Matching date/time controls and formatted display                    | Date/time controls except `timeRange`                   |
+| Date/time   | `date`, `dateTime`, `dateRange`, `dateTimeRange`, `time`, `timeRange` | Matching date/time controls and formatted display                    | Matching date/time controls                             |
 | Table       | `index`, `indexBorder`, `option`                                      | Index and action columns                                             | No field generated                                      |
 | Composition | `group`, `formList`, `formSet`, `divider`, `dependency`               | No data column generated                                             | Groups, dynamic lists, sets, dividers, and dependencies |
 
@@ -105,6 +105,21 @@ Other slots not consumed by ProTable are forwarded to the underlying Antdv Next 
 | `dependency`                     | `dependencies` plus a dependency column | <span class="compat-ok">supported</span>    |
 
 `urlSync` is a Vue-side extension. `true` writes fields into query parameters, `{ key: 'filters' }` stores the complete model as JSON in one parameter, and `{ mode: 'hash' }` targets the hash. Browser history navigation hydrates the form again.
+
+Regular fields share the ProFormFields core with ProTable search/edit controls. SchemaForm customization precedence is field slot → `renderFormItem` → `column.component` → default `valueType` control, preserving all three extension points.
+
+## ProFormFields mapping
+
+The 19 standalone fields use template-friendly named exports such as `ProFormText`, `ProFormSelect`, `ProFormTreeSelect`, and `ProFormUploadButton`. The default `fieldMode="form-item"` creates a FormItem; `fieldMode="field"` renders only the bare control for table cells or layouts that already own a FormItem.
+
+| React compound name    | Recommended Vue template name | Relationship                      |
+| ---------------------- | ----------------------------- | --------------------------------- |
+| `ProFormText.Password` | `ProFormTextPassword`         | Both reference the same component |
+| `ProFormRadio.Group`   | `ProFormRadioGroup`           | Both reference the same component |
+
+Every field exposes standard `v-model`. The shared core bridges single Checkbox/Switch `checked`, Upload `fileList`, and other controls' `value` contracts to `modelValue`. Select, TreeSelect, Checkbox Group, RadioGroup, and Segmented share the `options` / `valueEnum` / `request` protocol.
+
+Captcha does not read a phone number or send codes on its own, while UploadButton and UploadDragger do not provide an upload server. These components are not mapped to `valueType`; applications must provide the captcha callback and upload `action` / `customRequest` backend contract.
 
 ## Component refs
 

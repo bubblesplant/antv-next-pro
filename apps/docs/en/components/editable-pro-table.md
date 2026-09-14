@@ -103,6 +103,12 @@ const recordCreatorProps: RecordCreatorProps<Member> = {
 
 Every new row must have a unique `rowKey`. `maxLength` counts the flattened tree, hides the button at the limit, and is also enforced by ref-based `addEditRecord`.
 
+### Shared field core and FormItem boundary
+
+EditableProTable does not maintain a separate field map. It reuses the bare-control core from [ProFormFields](/en/components/pro-form-fields) through ProTable. `treeSelect`, `slider`, and `segmented` work in editable columns like existing `valueType` values, while checked fields and async options share the same `v-model`, race, and error behavior.
+
+Column `formItemProps` only provide cell validation and field configuration; they do not create a nested FormItem. Root-level `formItemProps` only wrap the complete EditableProTable in one outer FormItem. Custom editors still use column `renderFormItem` and write drafts through `context.update(value)`.
+
 ## API
 
 ### Props

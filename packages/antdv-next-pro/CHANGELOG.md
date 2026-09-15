@@ -1,5 +1,11 @@
 # antdv-next-pro
 
+## 0.1.3
+
+### Patch Changes
+
+- [`781f9bc`](https://github.com/bubblesplant/antv-next-pro/commit/781f9bc248d3b6e9007884791f4a8abcf9446a7d) Thanks [@bubblesplant](https://github.com/bubblesplant)! - 增加proformField 和 docs 以及 protable 和 editprotable schemaForm 基于 proformfiled 的重构
+
 ## 0.1.2
 
 ### Patch Changes

@@ -10,13 +10,13 @@ import type {
   ProTableInstance,
   ProTableProps,
   RecordCreatorProps,
-} from 'antdv-next-pro'
+} from '@bubblesjs/antv-next-pro'
 
 import { ConfigProvider, InputNumber, SpaceAddon, SpaceCompact, theme } from 'antdv-next'
 import arEG from 'antdv-next/locale/ar_EG'
 import enUS from 'antdv-next/locale/en_US'
 import zhCN from 'antdv-next/locale/zh_CN'
-import { EditableProTable, ProTable, SchemaForm } from 'antdv-next-pro'
+import { EditableProTable, ProTable, SchemaForm } from '@bubblesjs/antv-next-pro'
 import { computed, h, nextTick, ref } from 'vue'
 
 import { createDemoRequest, demoRows, type DemoQuery, type DemoRow } from './demoData'

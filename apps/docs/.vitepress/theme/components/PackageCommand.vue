@@ -8,13 +8,28 @@ const panelId = `package-command-${useId()}`
 const managers = [
   {
     name: 'npm',
-    command: 'npm install antdv-next-pro antdv-next vue',
+    command: 'npm install @bubblesjs/antv-next-pro antdv-next vue',
     color: '#cb3837',
     mark: 'n',
   },
-  { name: 'yarn', command: 'yarn add antdv-next-pro antdv-next vue', color: '#2c8ebb', mark: 'y' },
-  { name: 'pnpm', command: 'pnpm add antdv-next-pro antdv-next vue', color: '#e7a528', mark: 'p' },
-  { name: 'bun', command: 'bun add antdv-next-pro antdv-next vue', color: '#ac8767', mark: 'b' },
+  {
+    name: 'yarn',
+    command: 'yarn add @bubblesjs/antv-next-pro antdv-next vue',
+    color: '#2c8ebb',
+    mark: 'y',
+  },
+  {
+    name: 'pnpm',
+    command: 'pnpm add @bubblesjs/antv-next-pro antdv-next vue',
+    color: '#e7a528',
+    mark: 'p',
+  },
+  {
+    name: 'bun',
+    command: 'bun add @bubblesjs/antv-next-pro antdv-next vue',
+    color: '#ac8767',
+    mark: 'b',
+  },
 ]
 const activeIndex = ref(0)
 const tabButtons = ref<HTMLButtonElement[]>([])

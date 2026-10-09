@@ -142,7 +142,7 @@ export default defineConfig({
           replacement: fileURLToPath(new URL('./theme/components/ProOutline.vue', import.meta.url)),
         },
         {
-          find: /^antdv-next-pro$/,
+          find: /^@bubblesjs\/antv-next-pro$/,
           replacement: fileURLToPath(
             new URL('../../../packages/antdv-next-pro/src/index.ts', import.meta.url),
           ),

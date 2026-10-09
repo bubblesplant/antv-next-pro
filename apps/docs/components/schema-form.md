@@ -106,7 +106,7 @@ SchemaForm、ProTable 搜索/编辑与[独立 ProFormFields](./pro-form-fields)�
 
 ```vue
 <script setup lang="ts">
-import { ModalForm, StepsForm } from 'antdv-next-pro'
+import { ModalForm, StepsForm } from '@bubblesjs/antv-next-pro'
 </script>
 
 <template>

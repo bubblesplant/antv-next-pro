@@ -45,7 +45,7 @@ import ProTableDemo from '../examples/ProTableDemo.vue'
 远程模式使用固定请求契约：
 
 ```ts
-import type { ProRequest } from 'antdv-next-pro'
+import type { ProRequest } from '@bubblesjs/antv-next-pro'
 
 const request: ProRequest<User, Query> = async (params, sort, filter) => {
   const result = await api.list({ ...params, sort, filter })
@@ -229,7 +229,7 @@ const tableColumnsState = computed<ProColumnsStateConfig>(() => ({
 ### 组件实例
 
 ```ts
-import type { ProTableInstance } from 'antdv-next-pro'
+import type { ProTableInstance } from '@bubblesjs/antv-next-pro'
 
 const tableRef = ref<ProTableInstance<User>>()
 

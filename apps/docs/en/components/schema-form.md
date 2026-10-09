@@ -107,7 +107,7 @@ Set `layout-type` or import a named layout component:
 
 ```vue
 <script setup lang="ts">
-import { ModalForm, StepsForm } from 'antdv-next-pro'
+import { ModalForm, StepsForm } from '@bubblesjs/antv-next-pro'
 </script>
 
 <template>

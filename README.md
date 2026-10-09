@@ -1,10 +1,10 @@
 # Antdv Next Pro
 
 [![CI](https://github.com/bubblesplant/antv-next-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/bubblesplant/antv-next-pro/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/antdv-next-pro.svg)](https://www.npmjs.com/package/antdv-next-pro)
+[![npm](https://img.shields.io/npm/v/%40bubblesjs%2Fantv-next-pro.svg)](https://www.npmjs.com/package/@bubblesjs/antv-next-pro)
 [![license](https://img.shields.io/badge/license-MIT-1768d3.svg)](./LICENSE)
 
-面向 Vue 3 与 Antdv Next 的高阶数据组件库。参考 `@ant-design/pro-components@2.8.10` 的主要 Props 和工作流，以 Vue 的 `v-model`、事件、插槽和组件 `ref` 提供：
+`@bubblesjs/antv-next-pro` 是社区维护的 Vue 3 与 Antdv Next 高阶数据组件库。参考 `@ant-design/pro-components@2.8.10` 的主要 Props 和工作流，以 Vue 的 `v-model`、事件、插槽和组件 `ref` 提供：
 
 - `ProTable`：搜索、分页、排序、筛选、列设置、远程请求与可编辑行。
 - `EditableProTable`：整表受控编辑、新建记录、单行/多行编辑与异步保存。
@@ -16,16 +16,16 @@
 ## 安装
 
 ```bash
-pnpm add antdv-next-pro antdv-next vue
+pnpm add @bubblesjs/antv-next-pro antdv-next vue
 ```
 
 ```ts
 import { createApp } from 'vue'
 import Antd from 'antdv-next'
-import AntdvNextPro from 'antdv-next-pro'
+import AntdvNextPro from '@bubblesjs/antv-next-pro'
 
 import 'antdv-next/dist/reset.css'
-import 'antdv-next-pro/style.css'
+import '@bubblesjs/antv-next-pro/style.css'
 
 createApp(App).use(Antd).use(AntdvNextPro).mount('#app')
 ```
@@ -41,7 +41,7 @@ import {
   ProTable,
   SchemaForm,
   type ProColumns,
-} from 'antdv-next-pro'
+} from '@bubblesjs/antv-next-pro'
 ```
 
 ProFormFields 默认包含 FormItem，设置 `fieldMode="field"` 可只渲染裸控件。完整 19 项导出、组合命名和 Captcha/Upload 边界见 [ProFormFields 文档](https://bubblesplant.github.io/antv-next-pro/components/pro-form-fields)。
@@ -59,7 +59,7 @@ ProFormFields 默认包含 FormItem，设置 `fieldMode="field"` 可只渲染裸
 
 ```vue
 <script setup lang="ts">
-import { ProTable, type ProColumns, type ProRequest } from 'antdv-next-pro'
+import { ProTable, type ProColumns, type ProRequest } from '@bubblesjs/antv-next-pro'
 
 type User = Record<string, unknown> & {
   id: number
@@ -108,7 +108,7 @@ packages/
   antdv-next-pro/       npm 组件包
 ```
 
-工程固定 Node.js 24、pnpm 11，并使用 Vite+ 统一运行 Vite、Oxlint、Oxfmt、Vitest、任务编排与组件打包。Vue SFC 额外由 `@antfu/eslint-config` 检查。
+工程固定 Node.js 24、pnpm 12.4.1，并使用 Vite+ 统一运行 Vite、Oxlint、Oxfmt、Vitest、任务编排与组件打包。Vue SFC 额外由 `@antfu/eslint-config` 检查。
 
 ```bash
 pnpm install

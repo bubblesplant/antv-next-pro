@@ -1,18 +1,18 @@
 # 快速开始
 
-`antdv-next-pro` 为 Vue 3 提供 19 个 `ProFormFields`、`ProTable`、`EditableProTable` 与 `SchemaForm`。独立字段和三个上层组件共享同一套字段核心；`columns` 模型可连续描述查询、展示、编辑和提交。
+`@bubblesjs/antv-next-pro` 是社区维护的组件库，为 Vue 3 提供 19 个 `ProFormFields`、`ProTable`、`EditableProTable` 与 `SchemaForm`。独立字段和三个上层组件共享同一套字段核心；`columns` 模型可连续描述查询、展示、编辑和提交。
 
 ## 环境要求
 
 - Node.js 24.x（仓库约束为 `>=24 <25`）
-- pnpm 11.22.0
+- pnpm 12.4.1
 - Vue 3.5+
 - `antdv-next` `^1.5.2`
 
 ## 安装
 
 ```bash
-pnpm add antdv-next-pro antdv-next vue
+pnpm add @bubblesjs/antv-next-pro antdv-next vue
 ```
 
 在应用入口安装 Vue 插件，并加载 Antdv Next reset 与组件库样式：
@@ -20,10 +20,10 @@ pnpm add antdv-next-pro antdv-next vue
 ```ts
 import { createApp } from 'vue'
 import Antd from 'antdv-next'
-import AntdvNextPro from 'antdv-next-pro'
+import AntdvNextPro from '@bubblesjs/antv-next-pro'
 
 import 'antdv-next/dist/reset.css'
-import 'antdv-next-pro/style.css'
+import '@bubblesjs/antv-next-pro/style.css'
 
 import App from './App.vue'
 
@@ -36,7 +36,7 @@ createApp(App).use(Antd).use(AntdvNextPro).mount('#app')
 
 ```vue
 <script setup lang="ts">
-import { ProTable, type ProColumns } from 'antdv-next-pro'
+import { ProTable, type ProColumns } from '@bubblesjs/antv-next-pro'
 
 type User = Record<string, unknown> & {
   id: number
@@ -50,6 +50,17 @@ const columns: ProColumns<User>[] = [{ title: '姓名', dataIndex: 'name', value
   <ProTable :columns="columns" :data-source="[{ id: 1, name: 'Ada' }]" row-key="id" />
 </template>
 ```
+
+## 从旧包迁移
+
+如果项目已安装 `antdv-next-pro`，先替换依赖：
+
+```bash
+pnpm remove antdv-next-pro
+pnpm add @bubblesjs/antv-next-pro antdv-next vue
+```
+
+将代码中的 `from 'antdv-next-pro'` 改为 `from '@bubblesjs/antv-next-pro'`，并将样式入口改为 `@bubblesjs/antv-next-pro/style.css`。此次更名的组件 API 和导出保持一致。
 
 ## 从组件开始
 
@@ -116,9 +127,9 @@ pnpm check        # 格式、Lint、类型、测试与构建
 pnpm changeset
 ```
 
-选择 `antdv-next-pro`、版本级别并填写面向使用者的变更说明，然后将生成的 `.changeset/*.md` 一并提交。当前仓库采用公开发布、`main` 基线、GitHub changelog 和内部依赖 patch 更新。
+选择 `@bubblesjs/antv-next-pro`、版本级别并填写面向使用者的变更说明，然后将生成的 `.changeset/*.md` 一并提交。当前仓库采用公开发布、`main` 基线、GitHub changelog 和内部依赖 patch 更新。
 
-初始包版本为 `0.0.0`，仓库已包含一个 minor changeset，因此首次正式版本目标为 `0.1.0`。`main` 的 CI 通过后，Release 工作流会：
+发布版本由组件包 `package.json` 中的当前版本与待发布 changeset 共同确定。`@bubblesjs/antv-next-pro` 是独立的 npm 包，首次发布到此作用域时不继承旧包的 npm 发布记录。`main` 的 CI 通过后，Release 工作流会：
 
 1. 通过 Changesets 创建或更新版本 PR。
 2. 版本 PR 合并后再次构建发布产物。

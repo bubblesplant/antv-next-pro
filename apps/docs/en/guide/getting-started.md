@@ -1,18 +1,18 @@
 # Getting Started
 
-`antdv-next-pro` provides 19 `ProFormFields` plus `ProTable`, `EditableProTable`, and `SchemaForm` for Vue 3. Standalone fields and all three higher-level components share one field core, while the `columns` model spans search, display, editing, and submission.
+`@bubblesjs/antv-next-pro` is a community-maintained library providing 19 `ProFormFields` plus `ProTable`, `EditableProTable`, and `SchemaForm` for Vue 3. Standalone fields and all three higher-level components share one field core, while the `columns` model spans search, display, editing, and submission.
 
 ## Requirements
 
 - Node.js 24.x (the repository engine range is `>=24 <25`)
-- pnpm 11.22.0
+- pnpm 12.4.1
 - Vue 3.5+
 - `antdv-next` `^1.5.2`
 
 ## Install
 
 ```bash
-pnpm add antdv-next-pro antdv-next vue
+pnpm add @bubblesjs/antv-next-pro antdv-next vue
 ```
 
 Install the Vue plugins and load both the Antdv Next reset and the library stylesheet:
@@ -20,10 +20,10 @@ Install the Vue plugins and load both the Antdv Next reset and the library style
 ```ts
 import { createApp } from 'vue'
 import Antd from 'antdv-next'
-import AntdvNextPro from 'antdv-next-pro'
+import AntdvNextPro from '@bubblesjs/antv-next-pro'
 
 import 'antdv-next/dist/reset.css'
-import 'antdv-next-pro/style.css'
+import '@bubblesjs/antv-next-pro/style.css'
 
 import App from './App.vue'
 
@@ -36,7 +36,7 @@ Named imports work without installing the `AntdvNextPro` plugin. The stylesheet 
 
 ```vue
 <script setup lang="ts">
-import { ProTable, type ProColumns } from 'antdv-next-pro'
+import { ProTable, type ProColumns } from '@bubblesjs/antv-next-pro'
 
 type User = Record<string, unknown> & {
   id: number
@@ -50,6 +50,17 @@ const columns: ProColumns<User>[] = [{ title: 'Name', dataIndex: 'name', valueTy
   <ProTable :columns="columns" :data-source="[{ id: 1, name: 'Ada' }]" row-key="id" />
 </template>
 ```
+
+## Migrate from the previous package
+
+If your project already uses `antdv-next-pro`, replace the dependency:
+
+```bash
+pnpm remove antdv-next-pro
+pnpm add @bubblesjs/antv-next-pro antdv-next vue
+```
+
+Replace `from 'antdv-next-pro'` with `from '@bubblesjs/antv-next-pro'` and change the stylesheet entry to `@bubblesjs/antv-next-pro/style.css`. The rename keeps the same component APIs and exports.
 
 ## Start with the components
 
@@ -116,9 +127,9 @@ Every npm-facing change should include a changeset:
 pnpm changeset
 ```
 
-Select `antdv-next-pro`, choose the release level, and write a user-facing summary. Commit the generated `.changeset/*.md` file with the implementation. The repository uses public access, `main` as the base branch, GitHub changelogs, and patch bumps for internal dependencies.
+Select `@bubblesjs/antv-next-pro`, choose the release level, and write a user-facing summary. Commit the generated `.changeset/*.md` file with the implementation. The repository uses public access, `main` as the base branch, GitHub changelogs, and patch bumps for internal dependencies.
 
-The package starts at `0.0.0` and already contains an initial minor changeset, so the first stable release target is `0.1.0`. After CI succeeds on `main`, the Release workflow:
+The release version is determined by the current version in the library's `package.json` and pending changesets. `@bubblesjs/antv-next-pro` is a separate npm package; its first scoped release does not inherit the old package's npm release history. After CI succeeds on `main`, the Release workflow:
 
 1. Creates or updates the Changesets version PR.
 2. Builds publish artifacts again after that PR is merged.

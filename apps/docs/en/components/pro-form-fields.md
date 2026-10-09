@@ -50,7 +50,7 @@ import {
   ProFormTreeSelect,
   ProFormUploadButton,
   ProFormUploadDragger,
-} from 'antdv-next-pro'
+} from '@bubblesjs/antv-next-pro'
 ```
 
 The package also provides names matching the composed Ant Design Pro Components API:

@@ -50,7 +50,7 @@ import {
   ProFormTreeSelect,
   ProFormUploadButton,
   ProFormUploadDragger,
-} from 'antdv-next-pro'
+} from '@bubblesjs/antv-next-pro'
 ```
 
 为对应 Ant Design Pro Components 的组合命名，同时提供：

@@ -1,4 +1,4 @@
-# antdv-next-pro
+# @bubblesjs/antv-next-pro
 
 ## 0.1.3
 

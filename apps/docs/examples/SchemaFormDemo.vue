@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { SchemaForm, type SchemaFormColumn, type SchemaFormInstance } from 'antdv-next-pro'
+import {
+  SchemaForm,
+  type SchemaFormColumn,
+  type SchemaFormInstance,
+} from '@bubblesjs/antv-next-pro'
 
 type Brief = Record<string, unknown> & {
   project?: string

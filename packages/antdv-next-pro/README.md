@@ -1,18 +1,18 @@
-# antdv-next-pro
+# @bubblesjs/antv-next-pro
 
-Vue 3 ProTable, EditableProTable, SchemaForm, and ProFormFields powered by Antdv Next.
+Community-maintained Vue 3 ProTable, EditableProTable, SchemaForm, and ProFormFields powered by Antdv Next.
 
 The API follows the major workflows of `@ant-design/pro-components@2.8.10`, expressed through idiomatic Vue `v-model`, events, slots, and component refs.
 
 ## Install
 
 ```bash
-pnpm add antdv-next-pro antdv-next vue
+pnpm add @bubblesjs/antv-next-pro antdv-next vue
 ```
 
 ```ts
-import AntdvNextPro from 'antdv-next-pro'
-import 'antdv-next-pro/style.css'
+import AntdvNextPro from '@bubblesjs/antv-next-pro'
+import '@bubblesjs/antv-next-pro/style.css'
 
 app.use(AntdvNextPro)
 ```
@@ -32,7 +32,7 @@ import {
   type ProTableInstance,
   type SchemaFormColumn,
   type SchemaFormInstance,
-} from 'antdv-next-pro'
+} from '@bubblesjs/antv-next-pro'
 ```
 
 ## ProTable
@@ -97,7 +97,7 @@ Each field is independently importable, uses standard Vue `v-model`, and include
 <script setup lang="ts">
 import { Form } from 'antdv-next'
 import { reactive } from 'vue'
-import { ProFormSelect, ProFormText } from 'antdv-next-pro'
+import { ProFormSelect, ProFormText } from '@bubblesjs/antv-next-pro'
 
 const form = reactive({ title: '', owner: undefined as string | undefined })
 
@@ -128,7 +128,7 @@ The 19 template-friendly field exports are:
 
 ## 中文简介
 
-`antdv-next-pro` 为 Vue 3 + Antdv Next 提供高阶表格、Schema 表单和 19 个独立 ProFormFields。表格与表单共享字段核心，支持通用 Promise 请求、受控双向绑定、异步选项/编辑以及普通、查询、弹层和步骤表单。
+`@bubblesjs/antv-next-pro` 是社区维护的组件库，为 Vue 3 + Antdv Next 提供高阶表格、Schema 表单和 19 个独立 ProFormFields。表格与表单共享字段核心，支持通用 Promise 请求、受控双向绑定、异步选项/编辑以及普通、查询、弹层和步骤表单。
 
 - [完整中文文档](https://bubblesplant.github.io/antv-next-pro/)
 - [English documentation](https://bubblesplant.github.io/antv-next-pro/en/)

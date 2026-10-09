@@ -45,7 +45,7 @@ Pass `dataSource` or `defaultDataSource` for local mode. Search, sorting, filter
 Remote mode uses one fixed request contract:
 
 ```ts
-import type { ProRequest } from 'antdv-next-pro'
+import type { ProRequest } from '@bubblesjs/antv-next-pro'
 
 const request: ProRequest<User, Query> = async (params, sort, filter) => {
   const result = await api.list({ ...params, sort, filter })
@@ -229,7 +229,7 @@ A cell slot takes precedence over the default display and editor. Prefer a heade
 ### Component ref
 
 ```ts
-import type { ProTableInstance } from 'antdv-next-pro'
+import type { ProTableInstance } from '@bubblesjs/antv-next-pro'
 
 const tableRef = ref<ProTableInstance<User>>()
 

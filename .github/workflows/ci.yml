@@ -65,7 +65,7 @@ jobs:
         run: pnpm test:coverage
 
       - name: Install Chromium
-        run: pnpm --filter antdv-next-pro exec playwright install --with-deps chromium
+        run: pnpm --filter @bubblesjs/antv-next-pro exec playwright install --with-deps chromium
 
       - name: Run browser tests
         run: pnpm test:browser
@@ -74,4 +74,4 @@ jobs:
         run: pnpm build
 
       - name: Verify package exports
-        run: pnpm --filter antdv-next-pro verify:package
+        run: pnpm --filter @bubblesjs/antv-next-pro verify:package

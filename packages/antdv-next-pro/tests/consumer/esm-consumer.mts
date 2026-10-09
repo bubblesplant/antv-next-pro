@@ -59,7 +59,7 @@ import AntdvNextPro, {
   type SchemaFormInstance,
   type SchemaFormProps,
   type SchemaFormSlots,
-} from 'antdv-next-pro'
+} from '@bubblesjs/antv-next-pro'
 
 interface UserRow extends Record<string, unknown> {
   id: number

@@ -39,7 +39,7 @@ export default defineConfig({
     tasks: {
       quality: {
         command:
-          'pnpm format:check && pnpm lint:ox && pnpm lint:vue && pnpm typecheck && pnpm test:coverage && pnpm test:browser && pnpm build && pnpm --filter antdv-next-pro verify:package',
+          'pnpm format:check && pnpm lint:ox && pnpm lint:vue && pnpm typecheck && pnpm test:coverage && pnpm test:browser && pnpm build && pnpm --filter @bubblesjs/antv-next-pro verify:package',
         cache: true,
         env: ['CI', 'NODE_ENV'],
       },

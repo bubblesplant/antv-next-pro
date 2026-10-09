@@ -26,7 +26,7 @@ import {
   ProFormUploadDragger,
   type ProFormDateRangeValue,
   type ProFormDateValue,
-} from 'antdv-next-pro'
+} from '@bubblesjs/antv-next-pro'
 
 interface DemoModel {
   text?: string

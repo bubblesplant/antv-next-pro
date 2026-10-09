@@ -7,7 +7,7 @@ import {
   type ProColumns,
   type ProKey,
   type RecordCreatorProps,
-} from 'antdv-next-pro'
+} from '@bubblesjs/antv-next-pro'
 
 type Member = Record<string, unknown> & {
   id: number

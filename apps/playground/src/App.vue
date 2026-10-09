@@ -11,7 +11,7 @@ import {
   type SchemaFormColumn,
   type SchemaFormInstance,
   type SchemaFormLayoutType,
-} from 'antdv-next-pro'
+} from '@bubblesjs/antv-next-pro'
 
 import ProTableDemoLab from './demos/pro-table/ProTableDemoLab.vue'
 

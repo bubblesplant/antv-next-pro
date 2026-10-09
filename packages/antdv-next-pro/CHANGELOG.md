@@ -1,5 +1,11 @@
 # @bubblesjs/antv-next-pro
 
+## 0.1.4
+
+### Patch Changes
+
+- [`c134e18`](https://github.com/bubblesplant/antv-next-pro/commit/c134e1830c883f7d1b0e9e0a86eb59dc23b73e66) Thanks [@bubblesplant](https://github.com/bubblesplant)! - 修改包名
+
 ## 0.1.3
 
 ### Patch Changes
